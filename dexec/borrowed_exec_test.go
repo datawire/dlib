@@ -28,8 +28,8 @@ import (
 	"testing"
 	"time"
 
-	exec "github.com/datawire/teleproxy/pkg/dexec"
-	"github.com/datawire/teleproxy/pkg/dlog"
+	exec "github.com/datawire/ambassador/pkg/dexec"
+	"github.com/datawire/ambassador/pkg/dlog"
 )
 
 func testContext(t *testing.T) context.Context {

@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	exec "github.com/datawire/teleproxy/pkg/dexec"
+	exec "github.com/datawire/ambassador/pkg/dexec"
 )
 
 func ExampleLookPath() {
