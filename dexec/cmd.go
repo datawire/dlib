@@ -12,7 +12,7 @@
 //
 // The logger used is configured in the context.Context passed to
 // CommandContext by calling
-// github.com/datawire/teleproxy/pkg/dlog.WithLogger.
+// github.com/datawire/ambassador/pkg/dlog.WithLogger.
 //
 // A Cmd logs when it starts, its exit status, and if they aren't an
 // *os.File, logs everything read from or written to .Stdin, .Stdout,
@@ -49,7 +49,7 @@ import (
 	"os/exec"
 	"sync"
 
-	"github.com/datawire/teleproxy/pkg/dlog"
+	"github.com/datawire/ambassador/pkg/dlog"
 )
 
 // Error is returned by LookPath when it fails to classify a file as an
@@ -90,7 +90,7 @@ type Cmd struct {
 //  1. To kill the process (by calling os.Process.Kill) if the context
 //     becomes done before the command completes on its own.
 //  2. To get the logger (by calling
-//     github.com/datawire/teleproxy/pkg/dlog.GetLogger on it).
+//     github.com/datawire/ambassador/pkg/dlog.GetLogger on it).
 //
 // See the os/exec.Command and os/exec.CommandContext documentation
 // for more information.
