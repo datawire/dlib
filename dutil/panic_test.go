@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/ambassador/pkg/dutil"
+	"github.com/datawire/dlib/dutil"
 )
 
 var thispackage, thisfile = func() (string, string) {

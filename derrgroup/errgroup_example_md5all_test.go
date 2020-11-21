@@ -15,7 +15,7 @@ import (
 	"os"
 	"path/filepath"
 
-	errgroup "github.com/datawire/ambassador/pkg/derrgroup"
+	errgroup "github.com/datawire/dlib/derrgroup"
 )
 
 // Pipeline demonstrates the use of a Group to implement a multi-stage

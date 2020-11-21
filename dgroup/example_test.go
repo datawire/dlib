@@ -7,9 +7,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/ambassador/pkg/dcontext"
-	"github.com/datawire/ambassador/pkg/dgroup"
-	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/dlib/dcontext"
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dlog"
 )
 
 func baseContext() context.Context {
@@ -197,19 +197,19 @@ runtime/pprof.writeGoroutine(0x6575e0, 0xc0003803c0, 0x2, 0x203000, 0xc)
 	/usr/lib/go/src/runtime/pprof/pprof.go:682 +0x45
 runtime/pprof.(*Profile).WriteTo(0x7770c0, 0x6575e0, 0xc0003803c0, 0x2, 0xc000380340, 0xc00038a4d0)
 	/usr/lib/go/src/runtime/pprof/pprof.go:331 +0x3f2
-github.com/datawire/ambassador/pkg/dgroup.logGoroutineTraces(0x659e80, 0xc000392300, 0x61b619, 0x16, 0x629ca0)
+github.com/datawire/dlib/dgroup.logGoroutineTraces(0x659e80, 0xc000392300, 0x61b619, 0x16, 0x629ca0)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:109 +0xba
-github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func4(0x659e80, 0xc00017c330, 0xc0001586b0, 0xc0000357c0)
+github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func4(0x659e80, 0xc00017c330, 0xc0001586b0, 0xc0000357c0)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:305 +0x4e5
-github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c330, 0xc0000b7920)
+github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c330, 0xc0000b7920)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0
-created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx
+created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88
 
 goroutine 1 [select]:
-github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait(0xc000153e30, 0x616a5c, 0x6)
+github.com/datawire/dlib/dgroup.(*Group).Wait(0xc000153e30, 0x616a5c, 0x6)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:418 +0x139
-github.com/datawire/ambassador/pkg/dgroup_test.Example_signalHandling3()
+github.com/datawire/dlib/dgroup_test.Example_signalHandling3()
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/example_test.go:233 +0x125
 testing.runExample(0x61ba2a, 0x17, 0x629c90, 0x6245c4, 0x491, 0x0, 0x0)
 	/usr/lib/go/src/testing/run_example.go:62 +0x209
@@ -243,19 +243,19 @@ created by testing.runExample
 	/usr/lib/go/src/testing/run_example.go:35 +0x176
 
 goroutine 1404 [chan receive]:
-github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func3(0x659e80, 0xc00017c270, 0xc0000a5d70, 0xd)
+github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func3(0x659e80, 0xc00017c270, 0xc0000a5d70, 0xd)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:271 +0x4a
-github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c270, 0xc0000b7900)
+github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c270, 0xc0000b7900)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0
-created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx
+created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88
 
 goroutine 1403 [select]:
-github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func2(0x659e80, 0xc00017c1b0, 0xc0000a5d80, 0x9)
+github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func2(0x659e80, 0xc00017c1b0, 0xc0000a5d80, 0x9)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:255 +0x254
-github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c1b0, 0xc000158870)
+github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c1b0, 0xc000158870)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0
-created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx
+created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88
 
 goroutine 1443 [syscall]:
@@ -267,13 +267,13 @@ created by os/signal.Notify.func1.1
 	/usr/lib/go/src/os/signal/signal.go:150 +0x45
 
 goroutine 1406 [select (no cases)]:
-github.com/datawire/ambassador/pkg/dgroup_test.Example_signalHandling3.func2(0x659e80, 0xc00017c3f0, 0x0, 0x0)
+github.com/datawire/dlib/dgroup_test.Example_signalHandling3.func2(0x659e80, 0xc00017c3f0, 0x0, 0x0)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/example_test.go:230 +0x2ab
-github.com/datawire/ambassador/pkg/dgroup.(*Group).goWorkerCtx.func1(0x0, 0x0)
+github.com/datawire/dlib/dgroup.(*Group).goWorkerCtx.func1(0x0, 0x0)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:354 +0x9f
-github.com/datawire/ambassador/pkg/derrgroup.(*Group).Go.func2(0xc00017c420, 0xc00012fbc0, 0xc0000a5de5, 0x7)
+github.com/datawire/dlib/derrgroup.(*Group).Go.func2(0xc00017c420, 0xc00012fbc0, 0xc0000a5de5, 0x7)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:131 +0x2b
-created by github.com/datawire/ambassador/pkg/derrgroup.(*Group).Go
+created by github.com/datawire/dlib/derrgroup.(*Group).Go
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:129 +0x12d
 
 goroutine 1407 [semacquire]:
@@ -281,11 +281,11 @@ sync.runtime_Semacquire(0xc00012fbcc)
 	/usr/lib/go/src/runtime/sema.go:56 +0x45
 sync.(*WaitGroup).Wait(0xc00012fbcc)
 	/usr/lib/go/src/sync/waitgroup.go:130 +0x65
-github.com/datawire/ambassador/pkg/derrgroup.(*Group).Wait(...)
+github.com/datawire/dlib/derrgroup.(*Group).Wait(...)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:99
-github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait.func1(0xc00015e840, 0xc000153e30)
+github.com/datawire/dlib/dgroup.(*Group).Wait.func1(0xc00015e840, 0xc000153e30)
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:413 +0x48
-created by github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait
+created by github.com/datawire/dlib/dgroup.(*Group).Wait
 	/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:412 +0x85
 `
 
@@ -399,19 +399,19 @@ func Example_signalHandling3() {
 	// level=error msg="    \t/usr/lib/go/src/runtime/pprof/pprof.go:682 +0x45" THREAD=":signal_handler:2"
 	// level=error msg="    runtime/pprof.(*Profile).WriteTo(0x7770c0, 0x6575e0, 0xc0003803c0, 0x2, 0xc000380340, 0xc00038a4d0)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/usr/lib/go/src/runtime/pprof/pprof.go:331 +0x3f2" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.logGoroutineTraces(0x659e80, 0xc000392300, 0x61b619, 0x16, 0x629ca0)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.logGoroutineTraces(0x659e80, 0xc000392300, 0x61b619, 0x16, 0x629ca0)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:109 +0xba" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func4(0x659e80, 0xc00017c330, 0xc0001586b0, 0xc0000357c0)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func4(0x659e80, 0xc00017c330, 0xc0001586b0, 0xc0000357c0)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:305 +0x4e5" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c330, 0xc0000b7920)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c330, 0xc0000b7920)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0" THREAD=":signal_handler:2"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx" THREAD=":signal_handler:2"
+	// level=error msg="    created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88" THREAD=":signal_handler:2"
 	// level=error msg="    " THREAD=":signal_handler:2"
 	// level=error msg="    goroutine 1 [select]:" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait(0xc000153e30, 0x616a5c, 0x6)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).Wait(0xc000153e30, 0x616a5c, 0x6)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:418 +0x139" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup_test.Example_signalHandling3()" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup_test.Example_signalHandling3()" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/example_test.go:233 +0x125" THREAD=":signal_handler:2"
 	// level=error msg="    testing.runExample(0x61ba2a, 0x17, 0x629c90, 0x6245c4, 0x491, 0x0, 0x0)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/usr/lib/go/src/testing/run_example.go:62 +0x209" THREAD=":signal_handler:2"
@@ -445,19 +445,19 @@ func Example_signalHandling3() {
 	// level=error msg="    \t/usr/lib/go/src/testing/run_example.go:35 +0x176" THREAD=":signal_handler:2"
 	// level=error msg="    " THREAD=":signal_handler:2"
 	// level=error msg="    goroutine 1404 [chan receive]:" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func3(0x659e80, 0xc00017c270, 0xc0000a5d70, 0xd)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func3(0x659e80, 0xc00017c270, 0xc0000a5d70, 0xd)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:271 +0x4a" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c270, 0xc0000b7900)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c270, 0xc0000b7900)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0" THREAD=":signal_handler:2"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx" THREAD=":signal_handler:2"
+	// level=error msg="    created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88" THREAD=":signal_handler:2"
 	// level=error msg="    " THREAD=":signal_handler:2"
 	// level=error msg="    goroutine 1403 [select]:" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func2(0x659e80, 0xc00017c1b0, 0xc0000a5d80, 0x9)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func2(0x659e80, 0xc00017c1b0, 0xc0000a5d80, 0x9)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:255 +0x254" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c1b0, 0xc000158870)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c1b0, 0xc000158870)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0" THREAD=":signal_handler:2"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx" THREAD=":signal_handler:2"
+	// level=error msg="    created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88" THREAD=":signal_handler:2"
 	// level=error msg="    " THREAD=":signal_handler:2"
 	// level=error msg="    goroutine 1443 [syscall]:" THREAD=":signal_handler:2"
@@ -469,13 +469,13 @@ func Example_signalHandling3() {
 	// level=error msg="    \t/usr/lib/go/src/os/signal/signal.go:150 +0x45" THREAD=":signal_handler:2"
 	// level=error msg="    " THREAD=":signal_handler:2"
 	// level=error msg="    goroutine 1406 [select (no cases)]:" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup_test.Example_signalHandling3.func2(0x659e80, 0xc00017c3f0, 0x0, 0x0)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup_test.Example_signalHandling3.func2(0x659e80, 0xc00017c3f0, 0x0, 0x0)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/example_test.go:230 +0x2ab" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).goWorkerCtx.func1(0x0, 0x0)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).goWorkerCtx.func1(0x0, 0x0)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:354 +0x9f" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/derrgroup.(*Group).Go.func2(0xc00017c420, 0xc00012fbc0, 0xc0000a5de5, 0x7)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/derrgroup.(*Group).Go.func2(0xc00017c420, 0xc00012fbc0, 0xc0000a5de5, 0x7)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:131 +0x2b" THREAD=":signal_handler:2"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/derrgroup.(*Group).Go" THREAD=":signal_handler:2"
+	// level=error msg="    created by github.com/datawire/dlib/derrgroup.(*Group).Go" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:129 +0x12d" THREAD=":signal_handler:2"
 	// level=error msg="    " THREAD=":signal_handler:2"
 	// level=error msg="    goroutine 1407 [semacquire]:" THREAD=":signal_handler:2"
@@ -483,11 +483,11 @@ func Example_signalHandling3() {
 	// level=error msg="    \t/usr/lib/go/src/runtime/sema.go:56 +0x45" THREAD=":signal_handler:2"
 	// level=error msg="    sync.(*WaitGroup).Wait(0xc00012fbcc)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/usr/lib/go/src/sync/waitgroup.go:130 +0x65" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/derrgroup.(*Group).Wait(...)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/derrgroup.(*Group).Wait(...)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:99" THREAD=":signal_handler:2"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait.func1(0xc00015e840, 0xc000153e30)" THREAD=":signal_handler:2"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).Wait.func1(0xc00015e840, 0xc000153e30)" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:413 +0x48" THREAD=":signal_handler:2"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait" THREAD=":signal_handler:2"
+	// level=error msg="    created by github.com/datawire/dlib/dgroup.(*Group).Wait" THREAD=":signal_handler:2"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:412 +0x85" THREAD=":signal_handler:2"
 	// level=info msg="  final goroutine statuses:" THREAD=":shutdown_status"
 	// level=info msg="    /worker          : running" THREAD=":shutdown_status"
@@ -500,19 +500,19 @@ func Example_signalHandling3() {
 	// level=error msg="    \t/usr/lib/go/src/runtime/pprof/pprof.go:682 +0x45" THREAD=":shutdown_status"
 	// level=error msg="    runtime/pprof.(*Profile).WriteTo(0x7770c0, 0x6575e0, 0xc0003803c0, 0x2, 0xc000380340, 0xc00038a4d0)" THREAD=":shutdown_status"
 	// level=error msg="    \t/usr/lib/go/src/runtime/pprof/pprof.go:331 +0x3f2" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.logGoroutineTraces(0x659e80, 0xc000392300, 0x61b619, 0x16, 0x629ca0)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.logGoroutineTraces(0x659e80, 0xc000392300, 0x61b619, 0x16, 0x629ca0)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:109 +0xba" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func4(0x659e80, 0xc00017c330, 0xc0001586b0, 0xc0000357c0)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func4(0x659e80, 0xc00017c330, 0xc0001586b0, 0xc0000357c0)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:305 +0x4e5" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c330, 0xc0000b7920)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c330, 0xc0000b7920)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0" THREAD=":shutdown_status"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx" THREAD=":shutdown_status"
+	// level=error msg="    created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88" THREAD=":shutdown_status"
 	// level=error msg="    " THREAD=":shutdown_status"
 	// level=error msg="    goroutine 1 [select]:" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait(0xc000153e30, 0x616a5c, 0x6)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).Wait(0xc000153e30, 0x616a5c, 0x6)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:418 +0x139" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup_test.Example_signalHandling3()" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup_test.Example_signalHandling3()" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/example_test.go:233 +0x125" THREAD=":shutdown_status"
 	// level=error msg="    testing.runExample(0x61ba2a, 0x17, 0x629c90, 0x6245c4, 0x491, 0x0, 0x0)" THREAD=":shutdown_status"
 	// level=error msg="    \t/usr/lib/go/src/testing/run_example.go:62 +0x209" THREAD=":shutdown_status"
@@ -546,19 +546,19 @@ func Example_signalHandling3() {
 	// level=error msg="    \t/usr/lib/go/src/testing/run_example.go:35 +0x176" THREAD=":shutdown_status"
 	// level=error msg="    " THREAD=":shutdown_status"
 	// level=error msg="    goroutine 1404 [chan receive]:" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func3(0x659e80, 0xc00017c270, 0xc0000a5d70, 0xd)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func3(0x659e80, 0xc00017c270, 0xc0000a5d70, 0xd)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:271 +0x4a" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c270, 0xc0000b7900)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c270, 0xc0000b7900)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0" THREAD=":shutdown_status"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx" THREAD=":shutdown_status"
+	// level=error msg="    created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88" THREAD=":shutdown_status"
 	// level=error msg="    " THREAD=":shutdown_status"
 	// level=error msg="    goroutine 1403 [select]:" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).launchSupervisors.func2(0x659e80, 0xc00017c1b0, 0xc0000a5d80, 0x9)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).launchSupervisors.func2(0x659e80, 0xc00017c1b0, 0xc0000a5d80, 0x9)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:255 +0x254" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c1b0, 0xc000158870)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx.func1(0xc000153e30, 0x659e80, 0xc00017c1b0, 0xc000158870)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:396 +0xb0" THREAD=":shutdown_status"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/dgroup.(*Group).goSupervisorCtx" THREAD=":shutdown_status"
+	// level=error msg="    created by github.com/datawire/dlib/dgroup.(*Group).goSupervisorCtx" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:384 +0x88" THREAD=":shutdown_status"
 	// level=error msg="    " THREAD=":shutdown_status"
 	// level=error msg="    goroutine 1443 [syscall]:" THREAD=":shutdown_status"
@@ -570,13 +570,13 @@ func Example_signalHandling3() {
 	// level=error msg="    \t/usr/lib/go/src/os/signal/signal.go:150 +0x45" THREAD=":shutdown_status"
 	// level=error msg="    " THREAD=":shutdown_status"
 	// level=error msg="    goroutine 1406 [select (no cases)]:" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup_test.Example_signalHandling3.func2(0x659e80, 0xc00017c3f0, 0x0, 0x0)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup_test.Example_signalHandling3.func2(0x659e80, 0xc00017c3f0, 0x0, 0x0)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/example_test.go:230 +0x2ab" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).goWorkerCtx.func1(0x0, 0x0)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).goWorkerCtx.func1(0x0, 0x0)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:354 +0x9f" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/derrgroup.(*Group).Go.func2(0xc00017c420, 0xc00012fbc0, 0xc0000a5de5, 0x7)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/derrgroup.(*Group).Go.func2(0xc00017c420, 0xc00012fbc0, 0xc0000a5de5, 0x7)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:131 +0x2b" THREAD=":shutdown_status"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/derrgroup.(*Group).Go" THREAD=":shutdown_status"
+	// level=error msg="    created by github.com/datawire/dlib/derrgroup.(*Group).Go" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:129 +0x12d" THREAD=":shutdown_status"
 	// level=error msg="    " THREAD=":shutdown_status"
 	// level=error msg="    goroutine 1407 [semacquire]:" THREAD=":shutdown_status"
@@ -584,11 +584,11 @@ func Example_signalHandling3() {
 	// level=error msg="    \t/usr/lib/go/src/runtime/sema.go:56 +0x45" THREAD=":shutdown_status"
 	// level=error msg="    sync.(*WaitGroup).Wait(0xc00012fbcc)" THREAD=":shutdown_status"
 	// level=error msg="    \t/usr/lib/go/src/sync/waitgroup.go:130 +0x65" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/derrgroup.(*Group).Wait(...)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/derrgroup.(*Group).Wait(...)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/derrgroup/errgroup.go:99" THREAD=":shutdown_status"
-	// level=error msg="    github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait.func1(0xc00015e840, 0xc000153e30)" THREAD=":shutdown_status"
+	// level=error msg="    github.com/datawire/dlib/dgroup.(*Group).Wait.func1(0xc00015e840, 0xc000153e30)" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:413 +0x48" THREAD=":shutdown_status"
-	// level=error msg="    created by github.com/datawire/ambassador/pkg/dgroup.(*Group).Wait" THREAD=":shutdown_status"
+	// level=error msg="    created by github.com/datawire/dlib/dgroup.(*Group).Wait" THREAD=":shutdown_status"
 	// level=error msg="    \t/home/lukeshu/src/github.com/datawire/apro/ambassador/pkg/dgroup/group.go:412 +0x85" THREAD=":shutdown_status"
 	// level=error msg="exiting with error: failed to shut down within the 1s shutdown timeout; some goroutines are left running"
 }

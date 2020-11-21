@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/dcontext"
-	"github.com/datawire/ambassador/pkg/dexec"
-	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/dlib/dcontext"
+	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 type lineBuffer struct {

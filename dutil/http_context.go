@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/datawire/ambassador/pkg/dcontext"
+	"github.com/datawire/dlib/dcontext"
 )
 
 // ListenAndServeHTTPWithContext runs server.ListenAndServe() on an http.Server, but properly calls

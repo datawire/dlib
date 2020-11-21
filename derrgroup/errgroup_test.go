@@ -14,7 +14,7 @@ import (
 	"os"
 	"testing"
 
-	errgroup "github.com/datawire/ambassador/pkg/derrgroup"
+	errgroup "github.com/datawire/dlib/derrgroup"
 )
 
 var (

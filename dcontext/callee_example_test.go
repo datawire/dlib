@@ -3,7 +3,7 @@ package dcontext_test
 import (
 	"context"
 
-	"github.com/datawire/ambassador/pkg/dcontext"
+	"github.com/datawire/dlib/dcontext"
 )
 
 // This example shows a simple 'exampleCallee' that is a worker function that

@@ -17,7 +17,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/datawire/ambassador/pkg/dexec/internal/poll" // MODIFIED
+	"github.com/datawire/dlib/dexec/internal/poll" // MODIFIED
 	"io/ioutil"
 	"os"
 	"os/exec"

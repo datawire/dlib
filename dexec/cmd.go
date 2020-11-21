@@ -12,7 +12,7 @@
 //
 // The logger used is configured in the context.Context passed to
 // CommandContext by calling
-// github.com/datawire/ambassador/pkg/dlog.WithLogger.
+// github.com/datawire/dlib/dlog.WithLogger.
 //
 // A Cmd logs when it starts, its exit status, and if they aren't an
 // *os.File, logs everything read from or written to .Stdin, .Stdout,
@@ -49,8 +49,8 @@ import (
 	"os/exec"
 	"sync"
 
-	"github.com/datawire/ambassador/pkg/dcontext"
-	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/dlib/dcontext"
+	"github.com/datawire/dlib/dlog"
 )
 
 // Error is returned by LookPath when it fails to classify a file as an
@@ -95,7 +95,7 @@ type Cmd struct {
 //
 //  1. To kill the process (by calling os.Process.Kill) if the context
 //     becomes done before the command completes on its own.
-//  2. For logging (see github.com/datawire/ambassador/pkg/dlog).
+//  2. For logging (see github.com/datawire/dlib/dlog).
 //
 // See the os/exec.Command and os/exec.CommandContext documentation
 // for more information.

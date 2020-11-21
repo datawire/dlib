@@ -15,7 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/dlib/dlog"
 )
 
 var logPos struct {

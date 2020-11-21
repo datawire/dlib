@@ -35,10 +35,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/ambassador/pkg/dcontext"
-	"github.com/datawire/ambassador/pkg/derrgroup"
-	"github.com/datawire/ambassador/pkg/dlog"
-	"github.com/datawire/ambassador/pkg/dutil"
+	"github.com/datawire/dlib/dcontext"
+	"github.com/datawire/dlib/derrgroup"
+	"github.com/datawire/dlib/dlog"
+	"github.com/datawire/dlib/dutil"
 )
 
 // A Group is a collection of goroutines working on subtasks that are

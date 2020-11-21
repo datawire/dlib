@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/dcontext"
+	"github.com/datawire/dlib/dcontext"
 )
 
 // This should be a very simple example of a parent caller function, showing how
@@ -55,7 +55,7 @@ func Example_caller() error {
 // gracefully.
 //
 // PS: Since this example function is actually useful, it's published as part of
-// the github.com/datawire/ambassador/pkg/dutil package.
+// the github.com/datawire/dlib/dutil package.
 func ListenAndServeHTTPWithContext(ctx context.Context, server *http.Server) error {
 	// An HTTP server is a bit of a complex example; for two reasons:
 	//

@@ -16,8 +16,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/datawire/ambassador/pkg/dexec/internal/poll"    // MODIFIED
-	"github.com/datawire/ambassador/pkg/dexec/internal/testenv" // MODIFIED
+	"github.com/datawire/dlib/dexec/internal/poll"    // MODIFIED
+	"github.com/datawire/dlib/dexec/internal/testenv" // MODIFIED
 	"io"
 	"io/ioutil"
 	"log"
@@ -32,8 +32,8 @@ import (
 	"testing"
 	"time"
 
-	exec "github.com/datawire/ambassador/pkg/dexec" // MODIFIED
-	"github.com/datawire/ambassador/pkg/dlog"       // MODIFIED
+	exec "github.com/datawire/dlib/dexec" // MODIFIED
+	"github.com/datawire/dlib/dlog"       // MODIFIED
 )
 
 // haveUnexpectedFDs is set at init time to report whether any

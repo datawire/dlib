@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	exec "github.com/datawire/ambassador/pkg/dexec" // MODIFIED
+	exec "github.com/datawire/dlib/dexec" // MODIFIED
 )
 
 func ExampleLookPath() {

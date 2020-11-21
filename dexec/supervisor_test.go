@@ -8,8 +8,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	exec "github.com/datawire/ambassador/pkg/dexec"
-	"github.com/datawire/ambassador/pkg/dlog"
+	exec "github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 func TestMustCapture(t *testing.T) {

@@ -10,7 +10,7 @@ package dexec // MODIFIED
 import (
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/dlog" // MODIFIED
+	"github.com/datawire/dlib/dlog" // MODIFIED
 )
 
 func BenchmarkExecHostname(b *testing.B) {

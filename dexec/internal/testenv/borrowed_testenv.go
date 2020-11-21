@@ -15,8 +15,8 @@ package testenv
 
 import (
 	"errors"
-	exec "github.com/datawire/ambassador/pkg/dexec"         // MODIFIED
-	"github.com/datawire/ambassador/pkg/dexec/internal/cfg" // MODIFIED
+	exec "github.com/datawire/dlib/dexec"         // MODIFIED
+	"github.com/datawire/dlib/dexec/internal/cfg" // MODIFIED
 	"os"
 	"path/filepath"
 	"runtime"

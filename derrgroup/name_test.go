@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/pkg/derrgroup"
+	"github.com/datawire/dlib/derrgroup"
 )
 
 func TestNameCollision(t *testing.T) {
