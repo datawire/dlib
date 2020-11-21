@@ -1,0 +1,35 @@
+version: 2.1
+
+jobs:
+
+  "test":
+    docker:
+    - image: golang:1.15
+    resource_class: small
+    steps:
+    - checkout
+    - run: make test
+    - run:
+        name: "Generate code-coverage report"
+        command: |
+          set -e
+          if test -e dlib.cov; then
+            make .circleci/goveralls
+            .circleci/goveralls -coverprofile=dlib.cov -service=circle-ci -repotoken=$COVERALLS_TOKEN
+          fi
+        when: always
+
+  "lint":
+    docker:
+    - image: golang:1.15
+    resource_class: small
+    steps:
+    - checkout
+    - run: make lint
+
+workflows:
+
+  "dlib":
+    jobs:
+    - "test"
+    - "lint"

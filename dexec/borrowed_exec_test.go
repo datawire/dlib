@@ -8,7 +8,6 @@
 // Use an external test to avoid os/exec -> net/http -> crypto/x509 -> os/exec
 // circular dependency on non-cgo darwin.
 
-//nolint // MODIFIED
 package dexec_test // MODIFIED
 
 import (

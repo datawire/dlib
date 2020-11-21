@@ -86,7 +86,7 @@ func MD5All(ctx context.Context, root string) (map[string][md5.Size]byte, error)
 		})
 	}
 	go func() {
-		g.Wait()
+		_ = g.Wait()
 		close(c)
 	}()
 

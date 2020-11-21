@@ -7,7 +7,6 @@
 
 // +build aix darwin dragonfly freebsd linux netbsd openbsd solaris
 
-//nolint // MODIFIED
 package dexec_test // MODIFIED
 
 import (

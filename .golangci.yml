@@ -1,0 +1,21 @@
+linters:
+  enable:
+  - nolintlint
+  disable:
+  - unused  # broken, gives false positives
+linters-settings:
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: github.com/datawire/dlib
+  errcheck:
+    exclude: "./.circleci/errcheck-exclude.txt"
+  nolintlint:
+    allow-leading-space: false
+issues:
+  exclude-rules:
+    - path: "/borrowed_"
+      text: ".*"
+    - path: "^dcontext/hardsoft_example_test\\.go$"
+      linters: ["govet"]
+      text: "lostcancel|tests: .* should return nothing"

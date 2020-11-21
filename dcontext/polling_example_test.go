@@ -1,3 +1,4 @@
+//nolint:deadcode,errcheck
 package dcontext_test
 
 import (

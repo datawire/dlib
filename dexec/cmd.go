@@ -159,7 +159,7 @@ func (c *Cmd) Start() error {
 			case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
 				// let os/exec send SIGKILL
 			case <-c.ctx.Done(): // soft shutdown
-				c.Cmd.Process.Signal(os.Interrupt) // send SIGINT
+				_ = c.Cmd.Process.Signal(os.Interrupt) // send SIGINT
 			case <-c.waitDone:
 				// it exited on its own
 			}

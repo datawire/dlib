@@ -36,17 +36,17 @@ func (pe panicError) StackTrace() errors.StackTrace { return pe.err.StackTrace()
 func (pe panicError) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		io.WriteString(s, "PANIC: ")
+		_, _ = io.WriteString(s, "PANIC: ")
 		if s.Flag('+') {
 			fmt.Fprintf(s, "%v", pe.err)
 			pe.StackTrace().Format(s, verb)
 			return
 		}
-		io.WriteString(s, pe.err.Error())
+		_, _ = io.WriteString(s, pe.err.Error())
 	case 's':
-		io.WriteString(s, pe.Error())
+		_, _ = io.WriteString(s, pe.Error())
 	case 'q':
-		fmt.Fprintf(s, "%q", pe.Error())
+		_, _ = fmt.Fprintf(s, "%q", pe.Error())
 	}
 }
 
