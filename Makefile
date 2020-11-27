@@ -1,3 +1,6 @@
+#
+# Intro
+
 help:
 	@echo 'Usage:'
 	@echo '  make help'
@@ -5,6 +8,11 @@ help:
 	@echo '  make dlib.cov.html'
 	@echo '  make lint'
 .PHONY: help
+
+.SECONDARY:
+
+#
+# Test
 
 dlib.cov: test
 test:
@@ -14,11 +22,26 @@ test:
 %.cov.html: %.cov
 	go tool cover -html=$< -o=$@
 
-.circleci/%: .circleci/%.d/go.mod .circleci/%.d/pin.go
-	cd $(<D) && go build -o ../$(@F) $$(sed -En 's,^import "(.*)"$$,\1,p' pin.go)
+#
+# Generate
+
+generate-clean:
+	rm -f dlog/convenience.go
+.PHONY: generate-clean
+
+generate:
+	go generate ./...
+.PHONY: generate
+
+#
+# Lint
 
 lint: .circleci/golangci-lint
 	.circleci/golangci-lint run ./...
 .PHONY: lint
 
-.SECONDARY:
+#
+# Tools
+
+.circleci/%: .circleci/%.d/go.mod .circleci/%.d/pin.go
+	cd $(<D) && go build -o ../$(@F) $$(sed -En 's,^import "(.*)"$$,\1,p' pin.go)
