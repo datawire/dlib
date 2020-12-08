@@ -1,4 +1,4 @@
-package dutil
+package dtime
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 // condition.
 var sleepTestHook func()
 
-// Sleep pauses the current goroutine for at least the duration d, or
+// SleepWithContext pauses the current goroutine for at least the duration d, or
 // until the Context is done, whichever happens first.
 //
 // You may be thinking, why not just do:
