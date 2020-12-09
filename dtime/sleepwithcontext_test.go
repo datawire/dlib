@@ -1,4 +1,4 @@
-package dutil
+package dtime
 
 import (
 	"context"
