@@ -305,8 +305,11 @@ func (g *Group) launchSupervisors() {
 				ctx := WithGoroutineName(ctx, fmt.Sprintf(":%d", i))
 				i++
 
+				// Specifically use fmt.Errorf instead of errors.Errorf here, to avoid including a
+				// stacktrace with the error, these are "expected" errors, and including stacktraces for
+				// them in the group's exit logging would just be noise.
 				if ctx.Err() == nil {
-					err := errors.Errorf("received signal %v (triggering graceful shutdown)", sig)
+					err := fmt.Errorf("received signal %v (triggering graceful shutdown)", sig)
 
 					g.goWorkerCtx(ctx, func(_ context.Context) error {
 						return err
@@ -314,7 +317,7 @@ func (g *Group) launchSupervisors() {
 					<-ctx.Done()
 
 				} else if dcontext.HardContext(ctx).Err() == nil {
-					err := errors.Errorf("received signal %v (graceful shutdown already triggered; triggering not-so-graceful shutdown)", sig)
+					err := fmt.Errorf("received signal %v (graceful shutdown already triggered; triggering not-so-graceful shutdown)", sig)
 
 					if !g.cfg.DisableLogging {
 						dlog.Errorln(ctx, err)
@@ -323,7 +326,7 @@ func (g *Group) launchSupervisors() {
 					g.hardCancel()
 
 				} else {
-					err := errors.Errorf("received signal %v (not-so-graceful shutdown already triggered)", sig)
+					err := fmt.Errorf("received signal %v (not-so-graceful shutdown already triggered)", sig)
 
 					if !g.cfg.DisableLogging {
 						dlog.Errorln(ctx, err)
@@ -371,7 +374,10 @@ func (g *Group) goWorkerCtx(ctx context.Context, fn func(ctx context.Context) er
 				if err == nil {
 					dlog.Debugf(ctx, "goroutine %q exited without error", getGoroutineName(ctx))
 				} else {
-					dlog.Errorf(ctx, "goroutine %q exited with error: %v", getGoroutineName(ctx), err)
+					// Use %+v instead of %v to include the stacktrace (if there is one).  In
+					// particular, if the above panic recovery tripped, then we really don't want to
+					// throw away the stacktrace.
+					dlog.Errorf(ctx, "goroutine %q exited with error: %+v", getGoroutineName(ctx), err)
 				}
 			}
 		}()
