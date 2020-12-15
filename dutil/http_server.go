@@ -31,6 +31,13 @@ func httpWithContext(ctx context.Context, server *http.Server, fn func() error) 
 		return err
 	case <-ctx.Done():
 		// A soft shutdown has been initiated; call server.Shutdown().
+
+		// If the hard Context becomes Done before server shuts down, then server.Shutdown()
+		// simply returns early, without doing any more-aggressive shutdown logic.  So in
+		// that case, we'll need to call server.Close() ourselves to propagate the hard
+		// shutdown.
+		defer server.Close()
+
 		return server.Shutdown(dcontext.HardContext(ctx))
 	}
 }
