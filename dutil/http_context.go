@@ -8,16 +8,29 @@ import (
 	"github.com/datawire/dlib/dcontext"
 )
 
+// If you find it nescessary to edit this function, then you should probably also edit the example
+// in `dcontext/hardsoft_example_test.go`.
 func httpWithContext(ctx context.Context, server *http.Server, fn func() error) error {
-	server.BaseContext = func(_ net.Listener) context.Context { return dcontext.HardContext(ctx) }
+	// Regardless of if you use dcontext, if you're using Contexts at all, then you should
+	// always set `.BaseContext` on your `http.Server`s so that your HTTP Handler receives a
+	// request object that has `Request.Context()` set correctly.
+	server.BaseContext = func(_ net.Listener) context.Context {
+		// We use the hard Context here instead of the soft Context so
+		// that in-progress requests don't get interrupted when we enter
+		// the shutdown grace period.
+		return dcontext.HardContext(ctx)
+	}
+
 	serverCh := make(chan error)
 	go func() {
 		serverCh <- fn()
 	}()
 	select {
 	case err := <-serverCh:
+		// The server quit on its own.
 		return err
 	case <-ctx.Done():
+		// A soft shutdown has been initiated; call server.Shutdown().
 		return server.Shutdown(dcontext.HardContext(ctx))
 	}
 }
