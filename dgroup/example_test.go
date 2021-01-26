@@ -110,7 +110,7 @@ func Example_signalHandling1() {
 
 // This example shows how the signal handler behaves when a worker is
 // poorly behaved, and doesn't quit during soft-shutdown when the user
-// hits hits Ctrl-C, but does handle hard-shutdown.
+// hits Ctrl-C, but does handle hard-shutdown.
 func Example_signalHandling2() {
 	exEvents := make(chan struct{})
 	go func() {

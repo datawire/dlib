@@ -13,7 +13,7 @@
 //  - it does not have a notion of "readiness", as it doesn't have any
 //    dependents that would block on a goroutine becoming ready
 //  - it launches worker goroutines right away when you call .Go(), as
-//    in doesn't have any dependencies that would block the worker
+//    it doesn't have any dependencies that would block the worker
 //    from starting
 //
 // So, if you need to enforce ordering requirements during goroutine
@@ -400,7 +400,7 @@ func (g *Group) goWorkerCtx(ctx context.Context, fn func(ctx context.Context) er
 //    quickly after that channel is closed.
 //  - They MUST not panic, as we don't bother to set up panic recovery
 //    for them.
-//  - The cfg.Workercontext() callback is not called.
+//  - The cfg.WorkerContext() callback is not called.
 //  - Being a "systems" thing, they must be robust and CANNOT fail; so
 //    they don't get to return an error.
 func (g *Group) goSupervisor(name string, fn func(ctx context.Context)) {

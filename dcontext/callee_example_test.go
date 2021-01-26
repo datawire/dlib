@@ -10,7 +10,7 @@ import (
 // This example shows a simple 'exampleCallee' that is a worker function that
 // takes a Context and uses it to support graceful shutdown.
 func Example_callee() {
-	// Ignore this function, it's just here because godoc won't let let you
+	// Ignore this function, it's just here because godoc won't let you
 	// define an example function with arguments.
 }
 
