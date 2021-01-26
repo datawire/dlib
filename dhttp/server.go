@@ -137,7 +137,15 @@ func (sc *ServerConfig) Serve(ctx context.Context, ln net.Listener) error {
 // neither the Server's TLSConfig.Certificates nor TLSConfig.GetCertificate are populated.  If the
 // certificate is signed by a certificate authority, the certFile should be the concatenation of the
 // server's certificate, any intermediates, and the CA's certificate.
+//
+// ServeTLS always closes the Listener before returning (this is slightly different than
+// *http.Server.ServeTLS, which does not close the Listener if returning early during setup due to
+// being passed invalid cert or key files).
 func (sc *ServerConfig) ServeTLS(ctx context.Context, ln net.Listener, certFile, keyFile string) error {
+	// Make sure we close the Listener before we return; the underlying srv.ServeTLS won't close
+	// it if it returns early during setup due to being passed invalid cert or key files.
+	defer ln.Close()
+
 	return sc.serve(ctx, func(srv *http.Server) error { return srv.ServeTLS(ln, certFile, keyFile) })
 }
 
@@ -168,9 +176,10 @@ func (sc *ServerConfig) ListenAndServeTLS(ctx context.Context, addr, certFile, k
 		return err
 	}
 
-	// Make sure we close the Listener before we return; the underlying srv.ServeTLS won't close
-	// it if it returns early during setup due to being passed invalid cert or key files.
-	defer ln.Close()
+	// If you're comparing this method to *http.Server.ListenAndServeTLS, then you're probably
+	// thinking "Don't we need a `defer ln.Close()` here!?" (and also probably wondering why
+	// *http.Server needs that statement).  The answer is "no, we don't need it", because we
+	// handle that in ServeTLS instead (and see the comments there about why it's nescessary).
 
 	return sc.ServeTLS(ctx, ln, certFile, keyFile)
 }

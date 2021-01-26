@@ -101,6 +101,10 @@ func ServeHTTPWithContext(ctx context.Context, server *http.Server, ln net.Liste
 //
 // It is invalid to call ServeHTTPSWithContext with server.BaseContext set; the passed-in Context is
 // the base Context.
+//
+// ServeHTTPSWithContext always closes the Listener before returning (this is slightly different
+// than *http.Server.ServeTLS, which does not close the Listener if returning early during setup due
+// to being passed invalid cert or key files).
 func ServeHTTPSWithContext(ctx context.Context, server *http.Server, ln net.Listener, certFile, keyFile string) error {
 	sc, err := serverConfig(server)
 	if err != nil {
