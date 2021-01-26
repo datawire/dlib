@@ -2,6 +2,7 @@ package dutil_test
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"testing"
@@ -68,4 +69,44 @@ func TestHTTPHardShutdown(t *testing.T) {
 	<-cRequestFinished
 	<-sExited
 	<-sRequestFinished
+}
+
+// TestHTTPBaseContext checks to make sure that we detect when erronously called with BaseContext
+// set.
+func TestHTTPBaseContext(t *testing.T) {
+	testcases := map[string]func(context.Context, *http.Server) error{
+		"ListenAndServeHTTPWithContext": func(ctx context.Context, srv *http.Server) error {
+			return dutil.ListenAndServeHTTPWithContext(ctx, srv)
+		},
+		"ListenAndServeHTTPSWithContext": func(ctx context.Context, srv *http.Server) error {
+			return dutil.ListenAndServeHTTPSWithContext(ctx, srv, "/dev/null", "/dev/null")
+		},
+		"ServeHTTPWithContext": func(ctx context.Context, srv *http.Server) error {
+			ln, err := net.Listen("tcp", ":0")
+			if err != nil {
+				return err
+			}
+			defer ln.Close()
+			return dutil.ServeHTTPWithContext(ctx, srv, ln)
+		},
+		"ServeHTTPSWithContext": func(ctx context.Context, srv *http.Server) error {
+			ln, err := net.Listen("tcp", ":0")
+			if err != nil {
+				return err
+			}
+			defer ln.Close()
+			return dutil.ServeHTTPSWithContext(ctx, srv, ln, "/dev/null", "/dev/null")
+		},
+	}
+	for tcName, tc := range testcases {
+		t.Run(tcName, func(t *testing.T) {
+			ctx := dlog.NewTestContext(t, true)
+			srv := &http.Server{
+				Addr:        ":0",
+				BaseContext: func(_ net.Listener) context.Context { return nil }, // just something to be non-nil
+			}
+			err := tc(ctx, srv)
+			assert.Equal(t, err.Error(), fmt.Sprintf("it is invalid to call %s with the Server.BaseContext set", tcName))
+		})
+	}
 }
