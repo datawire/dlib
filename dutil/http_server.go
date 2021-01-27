@@ -23,6 +23,10 @@ func httpWithContext(ctx context.Context, server *http.Server, fn func() error) 
 		return errors.Errorf("it is invalid to call %s with the Server.BaseContext set", name)
 	}
 
+	// Set up a cancel to ensure that we don't leak a live Context to stray goroutines.
+	hardCtx, hardCancel := context.WithCancel(dcontext.HardContext(ctx))
+	defer hardCancel()
+
 	// Regardless of if you use dcontext, if you're using Contexts at all, then you should
 	// always set `.BaseContext` on your `http.Server`s so that your HTTP Handler receives a
 	// request object that has `Request.Context()` set correctly.
@@ -30,28 +34,32 @@ func httpWithContext(ctx context.Context, server *http.Server, fn func() error) 
 		// We use the hard Context here instead of the soft Context so
 		// that in-progress requests don't get interrupted when we enter
 		// the shutdown grace period.
-		return dcontext.HardContext(ctx)
+		return hardCtx
 	}
 
 	serverCh := make(chan error)
 	go func() {
 		serverCh <- fn()
+		close(serverCh)
 	}()
+
+	var err error
 	select {
-	case err := <-serverCh:
+	case err = <-serverCh:
 		// The server quit on its own.
-		return err
 	case <-ctx.Done():
 		// A soft shutdown has been initiated; call server.Shutdown().
+		err = server.Shutdown(hardCtx)
 
-		// If the hard Context becomes Done before server shuts down, then server.Shutdown()
+		// If the hardCtx becomes Done before server shuts down, then server.Shutdown()
 		// simply returns early, without doing any more-aggressive shutdown logic.  So in
 		// that case, we'll need to call server.Close() ourselves to propagate the hard
 		// shutdown.
-		defer server.Close()
-
-		return server.Shutdown(dcontext.HardContext(ctx))
+		_ = server.Close()
+		<-serverCh // Don't leak the channel
 	}
+
+	return err
 }
 
 // ListenAndServeHTTPWithContext runs server.ListenAndServe() on an http.Server, but properly calls
