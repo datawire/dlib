@@ -37,6 +37,10 @@ func serverConfig(server *http.Server) (*dhttp.ServerConfig, error) {
 	return config, nil
 }
 
+// ListenAndServeHTTPWithContext is DEPRECATED; even with this function helping you out, there are
+// enough historical "gotchas" with http.Server, that you should consider using
+// github.com/datawire/dlib/dhttp instead.
+//
 // ListenAndServeHTTPWithContext runs server.ListenAndServe() on an http.Server, but properly calls
 // server.Shutdown when the Context is canceled.
 //
@@ -55,6 +59,10 @@ func ListenAndServeHTTPWithContext(ctx context.Context, server *http.Server) err
 	return sc.ListenAndServe(ctx, server.Addr)
 }
 
+// ListenAndServeHTTPSWithContext is DEPRECATED; even with this function helping you out, there are
+// enough historical "gotchas" with http.Server, that you should consider using
+// github.com/datawire/dlib/dhttp instead.
+//
 // ListenAndServeHTTPSWithContext runs server.ListenAndServeTLS() on an http.Server, but properly
 // calls server.Shutdown when the Context is canceled.
 //
@@ -73,6 +81,10 @@ func ListenAndServeHTTPSWithContext(ctx context.Context, server *http.Server, ce
 	return sc.ListenAndServeTLS(ctx, server.Addr, certFile, keyFile)
 }
 
+// ServeHTTPWithContext is DEPRECATED; even with this function helping you out, there are enough
+// historical "gotchas" with http.Server, that you should consider using
+// github.com/datawire/dlib/dhttp instead.
+//
 // ServeHTTPWithContext(ln) runs server.Serve(ln) on an http.Server, but properly calls
 // server.Shutdown when the Context is canceled.
 //
@@ -91,6 +103,10 @@ func ServeHTTPWithContext(ctx context.Context, server *http.Server, ln net.Liste
 	return sc.Serve(ctx, ln)
 }
 
+// ServeHTTPSWithContext is DEPRECATED; even with this function helping you out, there are enough
+// historical "gotchas" with http.Server, that you should consider using
+// github.com/datawire/dlib/dhttp instead.
+//
 // ServeHTTPSWithContext runs server.ServeTLS() on an http.Server, but properly calls
 // server.Shutdown when the Context is canceled.
 //

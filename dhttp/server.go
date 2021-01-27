@@ -52,15 +52,24 @@ type ServerConfig struct {
 	// Serve function (this is different than http.Server.ErrorLog, which would use the log
 	// package's standard logger).
 	ErrorLog *log.Logger
+
+	// OnShutdown is an array of functions that are each called once when shutdown is initiated.
+	// Use this when hijacking connections; your OnShutdown should notify your hijacking Handler
+	// to that a graceful shutdown has been initiated, and your Handler should respond by
+	// closing any idle connections.  This is used instead of dcontext soft Context cancellation
+	// because the Context should very much still be fully alive for any in-progress requests on
+	// that connection, and not soft-canceled; this is even softer than a dcontext soft cancel.
+	//
+	// (This replaces the RegisterOnShutdown method of *http.Server.)
+	OnShutdown []func()
 }
 
-// If you find it nescessary to edit this function, then you should probably also edit the example
-// in `dcontext/hardsoft_example_test.go`.
 func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) error) error {
-	// Set up a cancel to ensure that we don't leak a live Context to stray goroutines.
+	// Part 1: Set up a cancel to ensure that we don't leak a live Context to stray goroutines.
 	hardCtx, hardCancel := context.WithCancel(dcontext.HardContext(ctx))
 	defer hardCancel()
 
+	// Part 2: Instantiate the basic *http.Server.
 	server := &http.Server{
 		// Pass along the verbatim fields
 		Handler:           sc.Handler,
@@ -95,6 +104,11 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 	if server.ErrorLog == nil {
 		server.ErrorLog = dlog.StdLogger(ctx, dlog.LogLevelError)
 	}
+	for _, onShutdown := range sc.OnShutdown {
+		server.RegisterOnShutdown(onShutdown)
+	}
+
+	// Part 3: Actually run the thing.
 
 	serverCh := make(chan error)
 	go func() {
