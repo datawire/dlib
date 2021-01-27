@@ -73,9 +73,9 @@ func ListenAndServeHTTPSWithContext(ctx context.Context, server *http.Server, ce
 // server.Shutdown() when the soft Context is canceled, and the hard Context being canceled causes
 // the .Shutdown() to hurry along and kill any live requests and return, instead of waiting for them
 // to be completed gracefully.
-func ServeHTTPWithContext(ctx context.Context, server *http.Server, listener net.Listener) error {
+func ServeHTTPWithContext(ctx context.Context, server *http.Server, ln net.Listener) error {
 	return httpWithContext(ctx, server,
-		func() error { return server.Serve(listener) })
+		func() error { return server.Serve(ln) })
 }
 
 // ServeHTTPSWithContext runs server.ServeTLS() on an http.Server, but properly calls
