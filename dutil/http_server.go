@@ -10,7 +10,26 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/datawire/dlib/dcontext"
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dlog"
 )
+
+type connContextFn func(ctx context.Context, c net.Conn) context.Context
+
+func concatConnContext(fns ...connContextFn) connContextFn {
+	return func(ctx context.Context, c net.Conn) context.Context {
+		for _, fn := range fns {
+			if fn != nil {
+				ctx = fn(ctx, c)
+				if ctx == nil {
+					// This is the same check that http.Server.Serve does.
+					panic("ConnContext returned nil")
+				}
+			}
+		}
+		return ctx
+	}
+}
 
 // If you find it nescessary to edit this function, then you should probably also edit the example
 // in `dcontext/hardsoft_example_test.go`.
@@ -35,6 +54,15 @@ func httpWithContext(ctx context.Context, server *http.Server, fn func() error) 
 		// that in-progress requests don't get interrupted when we enter
 		// the shutdown grace period.
 		return hardCtx
+	}
+	server.ConnContext = concatConnContext(
+		func(ctx context.Context, c net.Conn) context.Context {
+			return dgroup.WithGoroutineName(ctx, "/"+c.LocalAddr().String())
+		},
+		server.ConnContext,
+	)
+	if server.ErrorLog == nil {
+		server.ErrorLog = dlog.StdLogger(ctx, dlog.LogLevelError)
 	}
 
 	serverCh := make(chan error)
