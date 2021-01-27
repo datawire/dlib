@@ -34,6 +34,7 @@ import (
 // However, this has some limitations (that I believe all other alternatives also share):
 //  - h2c connections are not closed by server.Close().
 //  - server.Shutdown() may return early before all h2c connections have been shutdown.
+// These limitations can be solved with configureHijackTracking.
 func configureHTTP2(server *http.Server, conf *http2.Server) error {
 	if server == nil {
 		// This check mimics http2.ConfigureServer.  We explicitly check for it here

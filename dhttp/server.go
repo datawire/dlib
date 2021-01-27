@@ -32,6 +32,8 @@ func concatConnContext(fns ...connContextFn) connContextFn {
 	}
 }
 
+type testHookContextKey struct{}
+
 // ServerConfig is a mostly-drop-in replacement for net/http.Server.
 type ServerConfig struct {
 	// These fields mimic exactly mimic http.Server; see the documentation there.
@@ -135,9 +137,9 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 
 	// Part 3: Configure HTTP/2.
 	//
-	// This isn't quite perfect; there are still some problems with h2c:
-	//  - h2c connections are not closed by server.Close().
-	//  - server.Shutdown() may return early before all h2c connections have been shutdown.
+	// Note that this still has a "gotcha" with h2c connections not being properly tracked
+	// because they show as hijacked (see the doc comment on configureHTTP2).  We'll address
+	// that below with configureHijackTracking.
 	if !sc.DisableHTTP2 {
 		cfg := sc.HTTP2Config
 		if cfg != nil {
@@ -150,7 +152,19 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 		}
 	}
 
-	// Part 4: Actually run the thing.
+	// Part 4: Configure tracking of hijacked connections.
+	//
+	// This is good in general, but really the motivating reason for it is for h2c connections
+	// (see above).  This must be called *after* configureHTTP2.
+	closeHijacked, waitHijacked := configureHijackTracking(server)
+
+	// Part n: Testing
+	if untyped := ctx.Value(testHookContextKey{}); untyped != nil {
+		testHook := untyped.(func(http.Handler) http.Handler)
+		server.Handler = testHook(server.Handler)
+	}
+
+	// Part 5: Actually run the thing.
 
 	serverCh := make(chan error)
 	go func() {
@@ -161,18 +175,49 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 	var err error
 	select {
 	case err = <-serverCh:
-		// The server quit on its own.
+		// The server encountered an error and bailed on its own.  Tell any hijacked
+		// connections to also bail.
+		hardCancel()
+		_ = server.Shutdown(hardCtx)
 	case <-ctx.Done():
 		// A soft shutdown has been initiated; call server.Shutdown().
 		err = server.Shutdown(hardCtx)
-
-		// If the hardCtx becomes Done before server shuts down, then server.Shutdown()
-		// simply returns early, without doing any more-aggressive shutdown logic.  So in
-		// that case, we'll need to call server.Close() ourselves to propagate the hard
-		// shutdown.
-		_ = server.Close()
-		<-serverCh // Don't leak the channel
+		<-serverCh // server returns immediately upon calling .Shutdown; don't leak the channel
 	}
+
+	// At this point, everything managed by the http.Server has finished, but hijacked
+	// connections may still be going.  We don't want to forcfully kill them if we haven't
+	// actually had a hard shutdown triggered yet.  So wait for that to happen.
+	workersDoneCh := make(chan struct{})
+	go func() {
+		waitHijacked()
+		close(workersDoneCh)
+	}()
+	select {
+	case <-hardCtx.Done():
+		if err == nil {
+			err = hardCtx.Err()
+		}
+	case <-workersDoneCh:
+	}
+
+	// Trigger the hard shutdown.  This is probably not nescessary in the <-workersDoneCh case,
+	// but let's do it in both cases, just to be safe.
+	//
+	// If the hardCtx becomes Done before server shuts down, then server.Shutdown() simply
+	// returns early, without doing any more-aggressive shutdown logic.  So we really do need to
+	// trigger the hard shutdown ourselves.
+	//
+	// Do the hardCancel *after* the "close" calls so that any truncated responses aren't
+	// mistakenly treated as complete.
+	_ = server.Close()
+	closeHijacked()
+	hardCancel()
+
+	// Wait for the workers to shut down.  This is normally done by server.Shutdown, but (1)
+	// server.Shutdown might have bailed early, and (2) server.Shutdown ignores hijacked
+	// connections.
+	<-workersDoneCh
 
 	return err
 }

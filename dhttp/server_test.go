@@ -192,11 +192,6 @@ func TestSmoketest(t *testing.T) {
 // server gets a hard-shutdown.
 func TestHardShutdown(t *testing.T) {
 	httpScenarios(t, func(t *testing.T, url string, client *http.Client, server func(context.Context, *dhttp.ServerConfig) error) {
-		if strings.Contains(t.Name(), "cleartext/h2") {
-			// Because h2c connections are never forcefully closed, this test
-			// hangs/fails for h2c right now.
-			t.SkipNow()
-		}
 		ctx, hardCancel := context.WithCancel(dlog.NewTestContext(t, false))
 		defer hardCancel()
 		ctx = dcontext.WithSoftness(ctx)
