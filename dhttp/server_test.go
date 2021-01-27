@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/http2"
 
 	"github.com/datawire/dlib/dcontext"
 	"github.com/datawire/dlib/dhttp"
@@ -54,6 +55,23 @@ func httpScenarios(t *testing.T,
 					ret.ForceAttemptHTTP2 = false
 					return ret
 				},
+				"h2-prior": func(ln net.Listener) http.RoundTripper {
+					return &http2.Transport{
+						AllowHTTP: true,
+						DialTLS: func(network, addr string, _ *tls.Config) (net.Conn, error) {
+							return dialer.Dial(network, addr)
+						},
+					}
+				},
+				// FIXME(lukesh): There isn't a simple way to do an RFC 7540 §3.2
+				// upgrade from a Go client.
+				/*
+					"h2-upgrade": func(ln net.Listener) http.RoundTripper {
+						return &h2cUpgradeTransport{
+							DialContext: dialer.DialContext,
+						}
+					},
+				*/
 			},
 		},
 		"tls": {
@@ -77,6 +95,16 @@ func httpScenarios(t *testing.T,
 					ret.DialContext = dialer.DialContext
 					ret.ForceAttemptHTTP2 = false
 					return ret
+				},
+				"h2": func(ln net.Listener) http.RoundTripper {
+					return &http2.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
+						DialTLS: func(network, addr string, config *tls.Config) (net.Conn, error) {
+							return tls.DialWithDialer(dialer, network, addr, config)
+						},
+					}
 				},
 			},
 		},
@@ -164,6 +192,10 @@ func TestSmoketest(t *testing.T) {
 // server gets a hard-shutdown.
 func TestHardShutdown(t *testing.T) {
 	httpScenarios(t, func(t *testing.T, url string, client *http.Client, server func(context.Context, *dhttp.ServerConfig) error) {
+		if strings.Contains(t.Name(), "cleartext/h2") {
+			// https://github.com/golang/net/pull/88
+			t.SkipNow()
+		}
 		ctx, hardCancel := context.WithCancel(dlog.NewTestContext(t, false))
 		defer hardCancel()
 		ctx = dcontext.WithSoftness(ctx)

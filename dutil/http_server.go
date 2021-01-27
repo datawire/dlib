@@ -32,6 +32,8 @@ func serverConfig(server *http.Server) (*dhttp.ServerConfig, error) {
 		ConnContext:       server.ConnContext,
 		TLSNextProto:      server.TLSNextProto,
 		ErrorLog:          server.ErrorLog,
+
+		DisableHTTP2: true,
 	}
 
 	return config, nil

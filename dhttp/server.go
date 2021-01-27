@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/net/http2"
+
 	"github.com/datawire/dlib/dcontext"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
@@ -42,7 +44,17 @@ type ServerConfig struct {
 	MaxHeaderBytes    int
 	ConnState         func(net.Conn, http.ConnState)
 	ConnContext       func(ctx context.Context, c net.Conn) context.Context
-	TLSNextProto      map[string]func(*http.Server, *tls.Conn, http.Handler)
+
+	// TLSNextProto (mostly mimicking http.Server.TLSNextProto) optionally specifies a function
+	// to take over ownership of the provided TLS connection when an ALPN protocol upgrade has
+	// occurred.  The map key is the protocol name negotiated.  The Handler argument should be
+	// used to handle HTTP requests and will initialize the Request's TLS and RemoteAddr if not
+	// already set.  The connection is automatically closed when the function returns.
+	//
+	// If you provide an "h2" entry, it will be forcefully overwritten unless DisableHTTP2 is
+	// true (this is different than http.Server.TLSNextProto, which only enables HTTP/2 if
+	// TLSNextProto is nil).
+	TLSNextProto map[string]func(*http.Server, *tls.Conn, http.Handler)
 
 	// ErrorLog (mostly mimicking http.Server.ErrorLog) specifies an optional logger for errors
 	// accepting connections, unexpected behavior from handlers, and underlying file-system
@@ -52,6 +64,19 @@ type ServerConfig struct {
 	// Serve function (this is different than http.Server.ErrorLog, which would use the log
 	// package's standard logger).
 	ErrorLog *log.Logger
+
+	// DisableHTTP2 controls whether both "h2" (HTTP/2 over TLS) and "h2c" (HTTP/2 over
+	// cleartext) are enabled or disabled.
+	//
+	// (This is not in http.Server at all.)
+	DisableHTTP2 bool
+
+	// HTTP2Config contains the HTTP/2-specific configuration (except for whether HTTP/2 is
+	// enabled at all; use DisableHTTP2 for that).  HTTP2Config may be nil, and HTTP/2 will
+	// still be enabled.
+	//
+	// (This is not in http.Server at all.)
+	HTTP2Config *http2.Server
 
 	// OnShutdown is an array of functions that are each called once when shutdown is initiated.
 	// Use this when hijacking connections; your OnShutdown should notify your hijacking Handler
@@ -108,7 +133,24 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 		server.RegisterOnShutdown(onShutdown)
 	}
 
-	// Part 3: Actually run the thing.
+	// Part 3: Configure HTTP/2.
+	//
+	// This isn't quite perfect; there are still some problems with h2c:
+	//  - h2c connections are not closed by server.Close().
+	//  - server.Shutdown() may return early before all h2c connections have been shutdown.
+	if !sc.DisableHTTP2 {
+		cfg := sc.HTTP2Config
+		if cfg != nil {
+			// shallow copy (there's nothing deep inside of it)
+			_cfg := *cfg
+			cfg = &_cfg
+		}
+		if err := configureHTTP2(server, cfg); err != nil {
+			return err
+		}
+	}
+
+	// Part 4: Actually run the thing.
 
 	serverCh := make(chan error)
 	go func() {
