@@ -1,3 +1,35 @@
+// Package dhttp is a simple production-ready HTTP server library for the 2020s.
+//
+// In his famous talk "Simplicity is Complicated"[1], Rob Pike talks about how even the most simple
+// server using net/http.Server is already production-ready (and about how complicated it was for
+// the Go designers to achieve that).  That was true in November 2015, when the talk was given.
+// However, what "production-ready" means and what "simple" means have both changed since then.
+//
+// "Production-ready" has changed; it now includes HTTP/2 support; HTTP/2 had just been finalized a
+// few months prior to the talk, and so wasn't something expected for production yet.  Some
+// quite-good work has since gone in to net/http.Server to support HTTP/2 over TLS, but HTTP/2 over
+// cleartext is forced to be left out because of backward-compatibility concerns; leaving the user
+// to have to bolt it on themselves using golang.org/x/net/http2/h2c.  Cleartext users of
+// net/http.Server must now choose between "production-ready" and "simplicity".  And even if the
+// user does decide to sacrifice that simplicity, the solution cannot be called really be
+// production-ready, since with x/net/http2/h2c alone cleartext HTTP/2 connections are not properly
+// shut down when shutting down the server.
+//
+// "Simple" has changed; in August of the next year, the Go standard library gained "context", a
+// unified mechanism for several things, most notably here for managing the lifecycle of processes.
+// Simple now means using Contexts for the lifecycle.  In order to tack on Context support to
+// net/http.Server, it gained a complex and confusing relationship between "Shutdown", "Close", and
+// "BaseContext".  While net/http.Server has gained Context support, because of
+// backward-compatibility concerns, it could not do it in a way that achieved simplicity.
+//
+// This package provides a simple production-ready HTTP server library, for the meaning that those
+// words have going in to the 2020s.  To accomplish this, it makes breaking changes from
+// net/http.Server, but keeps them to a minimum; it should still be familiar and comfortable to
+// those who are already used to net/http.Server.  Fret not about throwing away all of the
+// engineering that went in to net/http.Server; this package still uses net/http.Server internally.
+//
+// [1]: https://www.youtube.com/watch?v=rFejpH_tAHM and
+// https://talks.golang.org/2015/simplicity-is-complicated.slide
 package dhttp
 
 import (
@@ -35,6 +67,59 @@ func concatConnContext(fns ...connContextFn) connContextFn {
 type testHookContextKey struct{}
 
 // ServerConfig is a mostly-drop-in replacement for net/http.Server.
+//
+// This is better than http.Server because:
+//
+//  - It natively supports "h2c" (HTTP/2 over cleartext)
+//  - Its "h2c" support is better than http.Server with golang.org/x/net/http2/h2c.NewHandler,
+//    because it properly shuts down idle h2c connections when server.Shutdown is called, rather
+//    than allowing h2c connections to sit around forever.
+//  - It uses Context cancellation as a simple and composable shutdown mechanism; supporting
+//    dcontext hard/soft contexts, rather than awkward relationship between the Shutdown and Close
+//    methods.
+//  - When shutting down, it properly blocks when waiting for the workers of hijacked connections.
+//  - If you use dlog, you don't have to manually configure the logging for the server to do the
+//    right thing.
+//
+// Breaking changes from http.Server to ServerConfig that will stop your old code from compiling:
+//
+//  - Obviously, the name is different.
+//  - The "Addr" member field is removed; it is replaced by an "addr" argument to the
+//    "ListenAndServe(TLS)?" methods.
+//  - The "BaseContext" member field is removed; it is replaced by a "ctx" argument to the
+//    "(ListenAnd)?Serve(TLS?)" methods.
+//  - The "RegisterOnShutdown" is removed; it is replaced by an "OnShutdown" member field.
+//  - The "SetKeepAlivesEnabled", "Shutdown", and "Close" methods are removed; they are conceptually
+//    replaced by using Context cancellation for lifecycle management.  Use dcontext soft
+//    cancellation for the graceful shutdown that "Shutdown" allowed.
+//
+// Breaking changes from http.Server to ServerConfig that will maybe make your old code incorrect:
+//
+//  - The semantics of the "TLSNextProto" member field are slightly different.
+//  - The semantics of the "Error" member field are slightly different.
+//  - The structure is deep-copied by each of the "(ListenAnd)?Serve(TLS?)" methods; mutating the
+//    config structure while a server is running will not affect the running server.
+//  - HTTP/2 support (both "h2" and "h2c") is built-in, so if your code configures HTTP/2 manually,
+//    you're going to need to set "DisableHTTP2: true" to stop ServerConfig from stomping over your
+//    code's work.
+//
+// Arguably-breaking changes from http.Server that to ServerConfig that I'd say are bugfixes, but
+// could conceivably[1] make someone's old code incorrect:
+//
+//  - *http.Server.ServeTLS won't close the Listener if .ServeTLS returns early during setup due to
+//    having been passed invalid cert or key files; ServerConfig.ServeTLS will always close the
+//    Listener before returning; matching the "Serve" method.
+//
+// The reason for creating a new type and having breaking changes (rather than writing a few utility
+// functions that take an *http.Server as an argument) is that it became increasingly clear that the
+// lifecycle of a running server is tied to the lifecycle of the *http.Server object, while we've
+// grown a standard "Context" lifecycle system that wants to tie the lifecycle to the function call,
+// Rather than to the object.  This divorce between the running-server lifecycle and the object is
+// embodied in the name of the type; when the lifecycle of the object was the lifecycle of the
+// server, the object *was* the server, so it was named *http.Server; now the lifecycle is divorced
+// from that, and the object is just configuration for the server, so it is named *ServerConfig.
+//
+// [1]: https://xkcd.com/1172/
 type ServerConfig struct {
 	// These fields mimic exactly mimic http.Server; see the documentation there.
 	Handler           http.Handler
