@@ -8,8 +8,19 @@
 dlib is a set of small independent-but-complementary Context-oriented
 Go libraries.
 
-If each of the packages in dlib are independent, why are they lumped
-together in to dlib?  They share common design principles:
+## Why dlib?
+
+[Contexts](https://blog.golang.org/context) are a powerful construct introduced
+in Go 1.7. However, a large number of libraries were written before Contexts
+were introduced, and, as such, they don't take full advantage of contexts.
+
+So dlib is a set of Go libraries that use Context. There is no specific feature
+footprint for dlib; the libraries that have been added to dlib have been
+added based on need.
+
+## Design Principles
+
+Packages in dlib share these design principles:
 
  - Packages should be small.
 
