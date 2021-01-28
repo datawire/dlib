@@ -193,7 +193,8 @@ func TestSmoketest(t *testing.T) {
 func TestHardShutdown(t *testing.T) {
 	httpScenarios(t, func(t *testing.T, url string, client *http.Client, server func(context.Context, *dhttp.ServerConfig) error) {
 		if strings.Contains(t.Name(), "cleartext/h2") {
-			// https://github.com/golang/net/pull/88
+			// Because h2c connections are never forcefully closed, this test
+			// hangs/fails for h2c right now.
 			t.SkipNow()
 		}
 		ctx, hardCancel := context.WithCancel(dlog.NewTestContext(t, false))
