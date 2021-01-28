@@ -128,6 +128,7 @@ func (c childHardContext) Deadline() (deadline time.Time, ok bool) { return c.ha
 func (c childHardContext) Done() <-chan struct{}                   { return c.hardCtx.Done() }
 func (c childHardContext) Err() error                              { return c.hardCtx.Err() }
 func (c childHardContext) Value(key interface{}) interface{}       { return c.softCtx.Value(key) }
+func (c childHardContext) String() string                          { return contextName(c.softCtx) + ".HardContext" }
 
 // HardContext takes a child Context that is canceled sooner (a "soft"
 // cancellation) and returns a Context with the same values, but with the

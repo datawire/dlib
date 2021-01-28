@@ -4,9 +4,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package derrgroup provides synchronization, error propagation, and
-// cancellation callback for groups of goroutines working on subtasks
-// of a common task.
+// Package derrgroup is a low-level group abstraction; providing
+// synchronization, error propagation, and cancellation callback for
+// groups of goroutines working on subtasks of a common task.
 //
 // derrgroup is a fork of golang.org/x/sync/errgroup commit
 // 6e8e738ad208923de99951fe0b48239bfd864f28 (2020-06-04).  It is

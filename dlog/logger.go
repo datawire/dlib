@@ -50,8 +50,7 @@ type Logger interface {
 	Log(level LogLevel, msg string)
 }
 
-// LogLevel is an abstracted common log-level type for for
-// Logger.StdLogger().
+// LogLevel is an abstracted common log-level type for Logger.StdLogger().
 type LogLevel uint32
 
 const (

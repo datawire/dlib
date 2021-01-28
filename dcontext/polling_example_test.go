@@ -14,7 +14,7 @@ import (
 // to select when to shut down, it polls ctx.Err() in a loop to decide when to
 // shut down.
 func Example_pollingCallee() {
-	// Ignore this function, it's just here because godoc won't let let you
+	// Ignore this function, it's just here because godoc won't let you
 	// define an example function with arguments.
 }
 
