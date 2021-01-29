@@ -27,6 +27,7 @@ test:
 
 generate-clean:
 	rm -f dlog/convenience.go
+	rm -f dhttp/h2c_bundle.go
 .PHONY: generate-clean
 
 generate:

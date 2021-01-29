@@ -55,7 +55,9 @@ func Example_caller() error {
 // gracefully.
 //
 // PS: Since this example function is actually useful, it's published as part of
-// the github.com/datawire/dlib/dutil package.
+// the github.com/datawire/dlib/dutil package.  However, there are enough
+// historical "gotchas" with http.Server, that you should consider using
+// github.com/datawire/dlib/dhttp instead.
 func ListenAndServeHTTPWithContext(ctx context.Context, server *http.Server) error {
 	// An HTTP server is a bit of a complex example; for two reasons:
 	//
@@ -95,6 +97,14 @@ func ListenAndServeHTTPWithContext(ctx context.Context, server *http.Server) err
 		return err
 	case <-ctx.Done():
 		// A soft shutdown has been initiated; call server.Shutdown().
+
+		// If the hard Context becomes Done before server shuts down,
+		// then server.Shutdown() simply returns early, without doing
+		// any more-aggressive shutdown logic.  So in that case, we'll
+		// need to call server.Close() ourselves to propagate the hard
+		// shutdown.
+		defer server.Close()
+
 		return server.Shutdown(dcontext.HardContext(ctx))
 	}
 }
