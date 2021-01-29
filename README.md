@@ -176,3 +176,9 @@ principles have been reasonably consistently applied.  The user can
 pull in one package from dlib and trust that they won't have to worry
 about having to adjust their program to that package's opinions
 (except of course, for the opinion that you should use Contexts!).
+
+# Example
+
+Everything is complementary, and so if you drink the Kool-Aid and want
+to see how to use everything together, check out [the example in
+`example_test.go`](https://pkg.go.dev/github.com/datawire/dlib)
