@@ -8,8 +8,21 @@
 dlib is a set of small independent-but-complementary Context-oriented
 Go libraries.
 
-If each of the packages in dlib are independent, why are they lumped
-together in to dlib?  They share common design principles:
+For the most part, each library within dlib is independent, and has a
+a different problem statement.  If they are each independent, why are
+they lumped together in to dlib?  Because they share common design
+principles; dlib is lumped together so that the user can trust that
+these principles have been reasonably consistently applied, and can
+spend less time evaluating the library before deciding whether to use
+it.
+
+# Design principles
+
+The thing binding together the different packages within dlib are that
+they share common design principles.  The tagline is that they are
+"small independent-but-complementary Context-oriented" packages, and
+each one of those words (except "but") has a lot of meaning packed in
+to it, and states one of the design principles:
 
  - Packages should be small.
 
@@ -103,25 +116,60 @@ together in to dlib?  They share common design principles:
    has the prettiest don't need to affect the code that is written,
    except for one-time setup in the final application's `main()`.
 
- - Defaults should be useful.
+   When there is something that a package don't want to or can't take
+   as an argument, rather than making it a global variable or other
+   global state, it should be packed in to a Context.  Then, rather
+   than reading it out of a variable, the function making use of it
+   can read it out of the Context.  And that won't be a problem,
+   because everything that might want some kind of ambient state will
+   take a Context as an argument, right?  Perhaps it helps to think of
+   a Context as an explicit passing of the ambient environment that a
+   function is executing it.
 
-   The core of `dlog` doesn't actually do much of anything; it
-   delegates to a pluggable logging backend, but it uses a
-   `logrus`-based backend by default; few users will be upset by this
-   default logging with colorized output and timestamps.  Having
-   useful defaults is a backing-assumption for being Context-oriented.
-   If `dlog` didn't have a useful default logger, then using it
-   wouldn't be a no-brainer, using `dlog` would force the user of that
-   package to care about `dlog` and whether or not they'd taken care
-   to configure the logger ahead-of-time.
+   Contexts were added in Go 1.7, and turned out to be a paradigm
+   shift.  And it's often a long journey to actually agreeing that
+   Contexts are a good idea (personally, it took @LukeShu years to
+   come around).  The Official position is that everything new should
+   use Contexts, but because of years of historical pre-Context code,
+   and because of people who still haven't come around to Contexts, a
+   lot of things don't use Contexts.  So when we say
+   "Context-oriented", what we're saying is which side of history dlib
+   is on.
 
-   A zero `dgroup.GroupConfig{}` is useful without filling in any
-   settings; things that are on by default have a `DisableXXX` bool,
-   and things that are off by default have an `EnableXXX` bool.  The
-   most-common configuration will be empty, and the second-most-common
-   configuration will be the just the 1 item `EnableSignalHandling:
-   true` (which we can't make the default because it would be bad to
-   set it up multiple signal handler in the same program).
+   And through the organic history of what is now dlib, we've seen how
+   that one "Contexts are good" opinion has allowed our libraries to
+   sidestep having other more ornery opinions and sidestep other
+   tricky design decisions.
+
+    + Defaults should be useful.
+
+      A zero `dgroup.GroupConfig{}` is useful without filling in any
+      settings; things that are on by default have a `DisableXXX`
+      bool, and things that are off by default have an `EnableXXX`
+      bool.  The most-common configuration will be empty, and the
+      second-most-common configuration will be the just the 1 item
+      `EnableSignalHandling: true` (which we can't make the default
+      because it would be bad to set it up multiple signal handler in
+      the same program).
+
+      The above paragraph is a general statement of a cultural value
+      in the Go community; "have meaningful zero values".  However,
+      being Context-oriented promotes that from a guideline to an
+      imperative: if you are reading your data out of a Context (as
+      `dlog` does), then you can't rely on having packed the data in
+      to the Context ahead-of-time; you must gracefully handle the
+      case where you don't get a value out.
+
+      The core of `dlog` doesn't actually do much of anything; it
+      delegates to a pluggable logging backend, but it uses a
+      `logrus`-based backend by default; few users will be upset by
+      this default logging with colorized output and timestamps.
+      Having useful defaults is a backing-assumption for being
+      Context-oriented.  If `dlog` didn't have a useful default
+      logger, then using it wouldn't be a no-brainer, using `dlog`
+      would force the user of that package to care about `dlog` and
+      whether or not they'd taken care to configure the logger
+      ahead-of-time.
 
 In all, dlib is lumped together so that the user can trust that these
 principles have been reasonably consistently applied.  The user can
