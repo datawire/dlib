@@ -14,10 +14,13 @@ import (
 
 func serverConfig(server *http.Server) (*dhttp.ServerConfig, error) {
 	if server.BaseContext != nil {
+		// Ask the runtime what's calling us, in order to put the correct
+		// "(ListenAnd)?Serve(TLS)?" function name in the error message.  Those functions
+		// are the only thing that calls this function.
 		pc, _, _, _ := runtime.Caller(1)
-		qname := runtime.FuncForPC(pc).Name()
-		dot := strings.LastIndex(qname, ".")
-		name := qname[dot+1:]
+		qname := runtime.FuncForPC(pc).Name() // Returns "domain.tld/pkgpath.Function".
+		dot := strings.LastIndex(qname, ".")  // Find the dot separating the pkg from the func.
+		name := qname[dot+1:]                 // Split on that dot.
 		return nil, errors.Errorf("it is invalid to call %s with the Server.BaseContext set", name)
 	}
 
