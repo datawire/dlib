@@ -6,15 +6,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	fallbackLogger   Logger = WrapLogrus(logrus.New())
+var globals = struct { //nolint:gochecknoglobals // this is a place where we really do want a global
+	fallbackLogger   Logger
 	fallbackLoggerMu sync.RWMutex
-)
+}{
+	fallbackLogger: WrapLogrus(logrus.New()),
+}
 
 func getFallbackLogger() Logger {
-	fallbackLoggerMu.RLock()
-	defer fallbackLoggerMu.RUnlock()
-	return fallbackLogger
+	globals.fallbackLoggerMu.RLock()
+	defer globals.fallbackLoggerMu.RUnlock()
+	return globals.fallbackLogger
 }
 
 // SetFallbackLogger sets the Logger that is returned for a context
@@ -25,7 +27,7 @@ func getFallbackLogger() Logger {
 // is Logrus and will behave reasonably; in order to make using dlog a
 // safe "no brainer".
 func SetFallbackLogger(l Logger) {
-	fallbackLoggerMu.Lock()
-	defer fallbackLoggerMu.Unlock()
-	fallbackLogger = l
+	globals.fallbackLoggerMu.Lock()
+	defer globals.fallbackLoggerMu.Unlock()
+	globals.fallbackLogger = l
 }

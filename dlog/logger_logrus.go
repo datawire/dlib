@@ -27,7 +27,7 @@ func (l logrusWrapper) WithField(key string, value interface{}) Logger {
 	return logrusWrapper{l.logrusLogger.WithField(key, value)}
 }
 
-var dlogLevel2logrusLevel = map[LogLevel]logrus.Level{
+var dlogLevel2logrusLevel = map[LogLevel]logrus.Level{ //nolint:gochecknoglobals // it'd be const, but a map can't be const
 	LogLevelError: logrus.ErrorLevel,
 	LogLevelWarn:  logrus.WarnLevel,
 	LogLevelInfo:  logrus.InfoLevel,

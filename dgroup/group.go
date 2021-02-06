@@ -96,7 +96,7 @@ func logGoroutineStatuses(
 	}
 }
 
-var stacktraceForTesting string
+type stacktraceForTestingCtxKey struct{}
 
 func logGoroutineTraces(
 	ctx context.Context,
@@ -104,8 +104,8 @@ func logGoroutineTraces(
 	printf func(ctx context.Context, format string, args ...interface{}),
 ) {
 	stacktrace := new(strings.Builder)
-	if stacktraceForTesting != "" {
-		stacktrace.WriteString(stacktraceForTesting)
+	if untyped := ctx.Value(stacktraceForTestingCtxKey{}); untyped != nil {
+		stacktrace.WriteString(untyped.(string))
 	} else {
 		p := pprof.Lookup("goroutine")
 		if p == nil {

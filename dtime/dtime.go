@@ -22,7 +22,11 @@ import (
 	dtimev2 "github.com/datawire/dlib/dtime/v2"
 )
 
-var dtimeCtx = context.Background()
+var globals = struct { //nolint:gochecknoglobals // avoiding a global is why we had to create dtime/v2; can't get rid of it with this API
+	ctx context.Context
+}{
+	ctx: context.Background(),
+}
 
 // Now is a clock function. It starts out as an alias to time.Now,
 // so if you simply use dtime.Now instead of time.Now, your program
@@ -33,7 +37,7 @@ var dtimeCtx = context.Background()
 // explicit control over the passage of time. dtime.FakeTime is an
 // obvious choice here, as shown in the example.
 func Now() time.Time {
-	return dtimev2.Now(dtimeCtx)
+	return dtimev2.Now(globals.ctx)
 }
 
 // SetNow overrides the definition of dtime.Now.
@@ -43,5 +47,5 @@ func Now() time.Time {
 // the clock in the middle of a program run and expect sane things to
 // happen, if your program pays any attention to the clock at all.
 func SetNow(newNow func() time.Time) {
-	dtimeCtx = dtimev2.WithClock(context.Background(), newNow)
+	globals.ctx = dtimev2.WithClock(context.Background(), newNow)
 }

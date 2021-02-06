@@ -64,7 +64,9 @@ type ExitError = exec.ExitError
 var ErrNotFound = exec.ErrNotFound
 
 // LookPath is the os/exe.LookPath function.
-var LookPath = exec.LookPath
+func LookPath(file string) (string, error) {
+	return exec.LookPath(file)
+}
 
 // Cmd represents an external command being prepared or run.
 //

@@ -18,7 +18,13 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-var logPos struct {
+type logPosCtxKey struct{}
+
+func withLogPos(ctx context.Context, logPos *position) context.Context {
+	return context.WithValue(ctx, logPosCtxKey{}, logPos)
+}
+
+type position struct {
 	File string
 	Line int
 }
@@ -27,11 +33,15 @@ var logPos struct {
 // logged from.
 func doLog(ctx context.Context) {
 	_, file, line, _ := runtime.Caller(0)
-	logPos.File, logPos.Line = file, line+2
+	if logPosUntyped := ctx.Value(logPosCtxKey{}); logPosUntyped != nil {
+		logPos := logPosUntyped.(*position)
+		logPos.File, logPos.Line = file, line+5
+	}
 	dlog.Infof(ctx, "grep for this")
 }
 
-var testLoggers = map[string]func(*testing.T) context.Context{
+var testLoggers = map[string]func(*testing.T) context.Context{ //nolint:gochecknoglobals // would be const, but a map can't be const
+
 	"logrus": func(_ *testing.T) context.Context {
 		logger := logrus.New()
 		logger.SetReportCaller(true)
@@ -45,7 +55,8 @@ var testLoggers = map[string]func(*testing.T) context.Context{
 func TestCaller(t *testing.T) {
 	t.Parallel()
 
-	doLog(dlog.WithLogger(context.Background(), dlog.WrapTB(t, false))) // initialize logPos
+	logPos := new(position)
+	doLog(withLogPos(dlog.WithLogger(context.Background(), dlog.WrapTB(t, false)), logPos)) // initialize logPos
 	expectedPos := fmt.Sprintf("%s:%d", filepath.Base(logPos.File), logPos.Line)
 	t.Logf("expected pos = %q", expectedPos)
 

@@ -13,12 +13,18 @@ import (
 )
 
 func baseContext() context.Context {
+	ctx := context.Background()
+
 	logger := logrus.New()
 	logger.SetOutput(os.Stdout)
 	logger.SetFormatter(&logrus.TextFormatter{
 		DisableTimestamp: true,
 	})
-	return dlog.WithLogger(context.Background(), dlog.WrapLogrus(logger))
+	ctx = dlog.WithLogger(ctx, dlog.WrapLogrus(logger))
+
+	ctx = dgroup.WithStacktraceForTesting(ctx, exampleStackTrace)
+
+	return ctx
 }
 
 func ExampleParentGroup() {
@@ -347,7 +353,6 @@ func Example_signalHandling3() {
 		// (at loglevel error).
 		close(exFinished)
 	}()
-	dgroup.SetStacktraceForTesting(exampleStackTrace)
 
 	ctx := baseContext()
 	group := dgroup.NewGroup(ctx, dgroup.GroupConfig{

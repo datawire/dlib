@@ -1,6 +1,7 @@
 linters:
   enable:
   - nolintlint
+  - gochecknoglobals
   disable:
   - unused  # broken, gives false positives
 linters-settings:
@@ -19,3 +20,9 @@ issues:
     - path: "^dcontext/hardsoft_example_test\\.go$"
       linters: ["govet"]
       text: "lostcancel|tests: .* should return nothing"
+    - path: "/errgroup_test.go$"
+      linters: ["gochecknoglobals"]
+      text: ".*"
+    - path: "_test.go$"
+      linters: ["gochecknoglobals"]
+      source: "^var thispackage"

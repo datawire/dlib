@@ -8,4 +8,4 @@ import (
 //
 // Note: We use a variable here (instead of wrapping the function) in order to avoid adding an extra
 // entry to the stacktrace.
-var PanicToError = derror.PanicToError
+var PanicToError = derror.PanicToError //nolint:gochecknoglobals // see above
