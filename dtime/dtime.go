@@ -1,4 +1,4 @@
-// Package dtime provides tools that FFS.
+// Package dtime is DEPRECATED, use dtime/v2 instead.
 //
 // Externally-consumable things provided here:
 //
@@ -15,9 +15,14 @@
 // thing when a context is involved.
 package dtime
 
-import "time"
+import (
+	"context"
+	"time"
 
-var now = time.Now
+	dtimev2 "github.com/datawire/dlib/dtime/v2"
+)
+
+var dtimeCtx = context.Background()
 
 // Now is a clock function. It starts out as an alias to time.Now,
 // so if you simply use dtime.Now instead of time.Now, your program
@@ -28,7 +33,7 @@ var now = time.Now
 // explicit control over the passage of time. dtime.FakeTime is an
 // obvious choice here, as shown in the example.
 func Now() time.Time {
-	return now()
+	return dtimev2.Now(dtimeCtx)
 }
 
 // SetNow overrides the definition of dtime.Now.
@@ -38,5 +43,5 @@ func Now() time.Time {
 // the clock in the middle of a program run and expect sane things to
 // happen, if your program pays any attention to the clock at all.
 func SetNow(newNow func() time.Time) {
-	now = newNow
+	dtimeCtx = dtimev2.WithClock(context.Background(), newNow)
 }

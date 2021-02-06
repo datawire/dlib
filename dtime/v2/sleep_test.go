@@ -34,12 +34,16 @@ func TestSleep(t *testing.T) {
 		Arg         time.Duration
 		CancelAfter time.Duration
 		Expected    time.Duration
+		Hook        func()
 	}{
 		"negative":    {Arg: -1 * time.Hour, Expected: 0},
 		"zero":        {Arg: 0, Expected: 0},
 		"canceled":    {Arg: 1 * time.Hour, CancelAfter: 1 * time.Second, Expected: 1 * time.Second},
 		"normal":      {Arg: 1 * time.Second, Expected: 1 * time.Second},
 		"late-cancel": {Arg: 1 * time.Second, CancelAfter: 1 * time.Hour, Expected: 1 * time.Second},
+		"race": {Arg: 11 * (time.Second / 10), CancelAfter: 1 * time.Second,
+			Hook:     func() { time.Sleep(time.Second / 2) },
+			Expected: 3 * (time.Second / 2)},
 	}
 	for tcname, tcinfo := range testcases {
 		t.Run(tcname, func(t *testing.T) {
@@ -49,8 +53,11 @@ func TestSleep(t *testing.T) {
 				ctx, cancel = context.WithTimeout(ctx, tcinfo.CancelAfter)
 				defer cancel()
 			}
+			if tcinfo.Hook != nil {
+				ctx = context.WithValue(ctx, sleepTestHookCtxKey{}, tcinfo.Hook)
+			}
 			start := time.Now()
-			SleepWithContext(ctx, tcinfo.Arg)
+			Sleep(ctx, tcinfo.Arg)
 			actual := time.Since(start)
 			assertDurationEq(t, tcinfo.Expected, actual,
 				time.Second/100)

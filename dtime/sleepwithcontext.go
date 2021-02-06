@@ -3,12 +3,9 @@ package dtime
 import (
 	"context"
 	"time"
-)
 
-// sleepTestHook is a hook that SleepWithContext calls, that lets us
-// insert a pause in order to more reliably test a certain race
-// condition.
-var sleepTestHook func()
+	dtimev2 "github.com/datawire/dlib/dtime/v2"
+)
 
 // SleepWithContext pauses the current goroutine for at least the duration d, or
 // until the Context is done, whichever happens first.
@@ -27,18 +24,5 @@ var sleepTestHook func()
 //
 // https://medium.com/@oboturov/golang-time-after-is-not-garbage-collected-4cbc94740082
 func SleepWithContext(ctx context.Context, d time.Duration) {
-	if d <= 0 {
-		return
-	}
-	timer := time.NewTimer(d)
-	select {
-	case <-ctx.Done():
-		if sleepTestHook != nil {
-			sleepTestHook()
-		}
-		if !timer.Stop() {
-			<-timer.C
-		}
-	case <-timer.C:
-	}
+	dtimev2.Sleep(ctx, d)
 }
