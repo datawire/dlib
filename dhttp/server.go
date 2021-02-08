@@ -116,7 +116,7 @@ type testHookContextKey struct{}
 //  - The "Addr" member field is removed; it is replaced by an "addr" argument to the
 //    "ListenAndServe(TLS)?" methods.
 //  - The "BaseContext" member field is removed; it is replaced by a "ctx" argument to the
-//    "(ListenAnd)?Serve(TLS?)" methods.
+//    "(ListenAnd)?Serve(TLS)?" methods.
 //  - The "RegisterOnShutdown" is removed; it is replaced by an "OnShutdown" member field.
 //  - The "SetKeepAlivesEnabled", "Shutdown", and "Close" methods are removed; they are conceptually
 //    replaced by using Context cancellation for lifecycle management.  Use dcontext soft
@@ -126,7 +126,7 @@ type testHookContextKey struct{}
 //
 //  - The semantics of the "TLSNextProto" member field are slightly different.
 //  - The semantics of the "Error" member field are slightly different.
-//  - The structure is deep-copied by each of the "(ListenAnd)?Serve(TLS?)" methods; mutating the
+//  - The structure is deep-copied by each of the "(ListenAnd)?Serve(TLS)?" methods; mutating the
 //    config structure while a server is running will not affect the running server.
 //  - HTTP/2 support (both "h2" and "h2c") is built-in, so if your code configures HTTP/2 manually,
 //    you're going to need to set "DisableHTTP2: true" to stop ServerConfig from stomping over your
