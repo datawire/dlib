@@ -38,6 +38,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
+	"strings"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -210,6 +213,8 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 	defer hardCancel()
 
 	// Part 2: Instantiate the basic *http.Server.
+	type listenerContextKey struct{}
+	var connCnt uint64
 	server := &http.Server{
 		// Pass along the verbatim fields
 		Handler:           sc.Handler,
@@ -220,8 +225,20 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 		MaxHeaderBytes:    sc.MaxHeaderBytes,
 		ConnState:         sc.ConnState,
 		ConnContext: concatConnContext(
-			func(ctx context.Context, c net.Conn) context.Context {
-				return dgroup.WithGoroutineName(ctx, "/"+c.LocalAddr().String())
+			func(ctx context.Context, conn net.Conn) context.Context {
+				// We want to distinguish between the goroutines for different
+				// connections.  Prefer to use the conn.LocalAddr(), but fall back
+				// to using a counter if .LocalAddr() isn't useful (it's just the
+				// same as the listener.Addr, as is for net.UnixConn) or would be
+				// confusing in a thread name (it contains a slash, as it likely
+				// would for a net.UnixConn).
+				listAddr := ctx.Value(listenerContextKey{}).(net.Listener).Addr().String()
+				connAddr := conn.LocalAddr().String()
+				name := connAddr
+				if connAddr == listAddr || strings.Contains(connAddr, "/") {
+					name = strconv.FormatUint(atomic.AddUint64(&connCnt, 1), 10)
+				}
+				return dgroup.WithGoroutineName(ctx, "/conn="+name)
 			},
 			sc.ConnContext,
 		),
@@ -231,11 +248,11 @@ func (sc *ServerConfig) serve(ctx context.Context, serveFn func(*http.Server) er
 		// Regardless of if you use dcontext, if you're using Contexts at all, then you should
 		// always set `.BaseContext` on your `http.Server`s so that your HTTP Handler receives a
 		// request object that has `Request.Context()` set correctly.
-		BaseContext: func(_ net.Listener) context.Context {
+		BaseContext: func(listener net.Listener) context.Context {
 			// We use the hard Context here instead of the soft Context so
 			// that in-progress requests don't get interrupted when we enter
 			// the shutdown grace period.
-			return hardCtx
+			return context.WithValue(hardCtx, listenerContextKey{}, listener)
 		},
 	}
 	for k, v := range sc.TLSNextProto {
