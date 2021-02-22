@@ -1,17 +1,17 @@
-package dtime
+package dtime_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/datawire/dlib/dlog"
+	dtime "github.com/datawire/dlib/dtime/v2"
 )
 
-func assertDurationEq(t testing.TB, expected, actual, slop time.Duration, msgAndArgs ...interface{}) bool {
+func assertDurationEq(t testing.TB, expected, actual, slop dtime.Duration, msgAndArgs ...interface{}) bool {
 	t.Helper()
 
 	diff := expected - actual
@@ -31,19 +31,15 @@ func assertDurationEq(t testing.TB, expected, actual, slop time.Duration, msgAnd
 func TestSleep(t *testing.T) {
 
 	testcases := map[string]struct {
-		Arg         time.Duration
-		CancelAfter time.Duration
-		Expected    time.Duration
-		Hook        func()
+		Arg         dtime.Duration
+		CancelAfter dtime.Duration
+		Expected    dtime.Duration
 	}{
-		"negative":    {Arg: -1 * time.Hour, Expected: 0},
+		"negative":    {Arg: -1 * dtime.Hour, Expected: 0},
 		"zero":        {Arg: 0, Expected: 0},
-		"canceled":    {Arg: 1 * time.Hour, CancelAfter: 1 * time.Second, Expected: 1 * time.Second},
-		"normal":      {Arg: 1 * time.Second, Expected: 1 * time.Second},
-		"late-cancel": {Arg: 1 * time.Second, CancelAfter: 1 * time.Hour, Expected: 1 * time.Second},
-		"race": {Arg: 11 * (time.Second / 10), CancelAfter: 1 * time.Second,
-			Hook:     func() { time.Sleep(time.Second / 2) },
-			Expected: 3 * (time.Second / 2)},
+		"canceled":    {Arg: 1 * dtime.Hour, CancelAfter: 1 * dtime.Second, Expected: 1 * dtime.Second},
+		"normal":      {Arg: 1 * dtime.Second, Expected: 1 * dtime.Second},
+		"late-cancel": {Arg: 1 * dtime.Second, CancelAfter: 1 * dtime.Hour, Expected: 1 * dtime.Second},
 	}
 	for tcname, tcinfo := range testcases {
 		t.Run(tcname, func(t *testing.T) {
@@ -53,14 +49,11 @@ func TestSleep(t *testing.T) {
 				ctx, cancel = context.WithTimeout(ctx, tcinfo.CancelAfter)
 				defer cancel()
 			}
-			if tcinfo.Hook != nil {
-				ctx = context.WithValue(ctx, sleepTestHookCtxKey{}, tcinfo.Hook)
-			}
-			start := time.Now()
-			Sleep(ctx, tcinfo.Arg)
-			actual := time.Since(start)
+			start := dtime.Now(ctx)
+			dtime.Sleep(ctx, tcinfo.Arg)
+			actual := dtime.Since(ctx, start)
 			assertDurationEq(t, tcinfo.Expected, actual,
-				time.Second/100)
+				dtime.Second/100)
 		})
 	}
 }

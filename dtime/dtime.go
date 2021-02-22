@@ -11,8 +11,8 @@
 // when time passes, and use its Now method instead of time.Now to
 // get the time.
 //
-// dtime.SleepWithContext is like time.Sleep(), but it does the right
-// thing when a context is involved.
+// dtime.SleepWithContext is like time.Sleep(), but it bails early
+// and releases the resources if the Context gets cancelled.
 package dtime
 
 import (
@@ -40,6 +40,16 @@ func Now() time.Time {
 	return dtimev2.Now(globals.ctx)
 }
 
+type clock func() time.Time
+
+func (c clock) Now() time.Time {
+	return c()
+}
+
+func (_ clock) At(ctx context.Context, t time.Time, f func()) {
+	dtimev2.StdClock{}.At(ctx, t, f)
+}
+
 // SetNow overrides the definition of dtime.Now.
 //
 // Note that overriding dtime.Now will (obviously) override it for the
@@ -47,5 +57,5 @@ func Now() time.Time {
 // the clock in the middle of a program run and expect sane things to
 // happen, if your program pays any attention to the clock at all.
 func SetNow(newNow func() time.Time) {
-	globals.ctx = dtimev2.WithClock(context.Background(), newNow)
+	globals.ctx = dtimev2.WithClock(context.Background(), clock(newNow))
 }

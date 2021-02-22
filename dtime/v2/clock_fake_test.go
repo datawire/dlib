@@ -1,15 +1,15 @@
 package dtime_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	dtime "github.com/datawire/dlib/dtime/v2"
 )
 
 func check(t *testing.T, fc *dtime.FakeClock, what string, wantedSec int) {
-	ssb := int(fc.TimeSinceBoot() / time.Second)
+	ssb := int(fc.TimeSinceBoot() / dtime.Second)
 
 	if ssb != wantedSec {
 		t.Errorf("%s: wanted %d seconds since boot, got %d", what, wantedSec, ssb)
@@ -17,7 +17,7 @@ func check(t *testing.T, fc *dtime.FakeClock, what string, wantedSec int) {
 }
 
 func TestFakeClock(t *testing.T) {
-	fc := dtime.NewFakeClock()
+	fc := dtime.NewFakeClock(dtime.Now(context.Background()))
 
 	fcBoot := fc.BootTime()
 	fcStart := fc.Now()
@@ -48,13 +48,13 @@ func TestFakeClock(t *testing.T) {
 
 	fcDur := fcEnd.Sub(fcStart)
 
-	if fcDur != 10*time.Second {
+	if fcDur != 10*dtime.Second {
 		t.Errorf("overall: wanted a 10-second duration, got %s", fcDur)
 	}
 }
 
 func ExampleFakeClock() {
-	fc := dtime.NewFakeClock()
+	fc := dtime.NewFakeClock(dtime.Now(context.Background()))
 
 	// At boot, fc.Now() and fc.BootTime() will be identical...
 	if fc.Now() == fc.BootTime() {
@@ -64,16 +64,16 @@ func ExampleFakeClock() {
 	}
 
 	// ...and TimeSinceBoot will be 0.
-	fmt.Printf("%d\n", fc.TimeSinceBoot()/time.Second)
+	fmt.Printf("%d\n", fc.TimeSinceBoot()/dtime.Second)
 
 	// After that, we can declare that 10s have passed...
 	fc.StepSec(10)
 
 	// ...and we should see that in TimeSinceBoot.
-	fmt.Printf("%d\n", fc.TimeSinceBoot()/time.Second)
+	fmt.Printf("%d\n", fc.TimeSinceBoot()/dtime.Second)
 
 	// But, of course, we're not limited to seconds.
-	fc.Step(2 * time.Hour)
+	fc.Step(2 * dtime.Hour)
 	fmt.Printf("%s\n", fc.TimeSinceBoot())
 
 	// Output:

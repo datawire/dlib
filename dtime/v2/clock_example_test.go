@@ -3,7 +3,6 @@ package dtime_test
 import (
 	"context"
 	"fmt"
-	"time"
 
 	dtime "github.com/datawire/dlib/dtime/v2"
 )
@@ -13,8 +12,8 @@ import (
 func ExampleNow() {
 	ctx := context.Background()
 
-	fc := dtime.NewFakeClock()
-	ctx = dtime.WithClock(ctx, fc.Now)
+	fc := dtime.NewFakeClock(dtime.Now(ctx))
+	ctx = dtime.WithClock(ctx, fc)
 
 	// At the start, fc.Now and dtime.Now should give the same answer.
 	start := fc.Now()
@@ -22,9 +21,9 @@ func ExampleNow() {
 	fmt.Printf("%d\n", int(now.Sub(start)))
 
 	// If we step fc by five minutes, dtime.Now should reflect that.
-	fc.Step(5 * time.Minute)
+	fc.Step(5 * dtime.Minute)
 	now = dtime.Now(ctx)
-	fmt.Printf("%d\n", int(now.Sub(start)/time.Second))
+	fmt.Printf("%d\n", int(now.Sub(start)/dtime.Second))
 
 	// When all is said and done, fc.TimeSinceBoot() should also tell
 	// us that we've stepped fc by five minutes.
