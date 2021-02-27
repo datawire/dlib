@@ -1,3 +1,5 @@
-/bundle
 /coveralls
 /golangci-lint
+
+# Removed 2021-03-08
+/bundle

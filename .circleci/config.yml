@@ -35,9 +35,8 @@ jobs:
         command: |
           set -e
           if test -e dlib.cov; then
-            sed '/_bundle\.go:/d' <dlib.cov >dlib-coveralls.cov
             make .circleci/goveralls
-            .circleci/goveralls -coverprofile=dlib-coveralls.cov -service=circle-ci -repotoken=$COVERALLS_TOKEN
+            .circleci/goveralls -coverprofile=dlib.cov -service=circle-ci -repotoken=$COVERALLS_TOKEN
           fi
         when: always
 
