@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 	"testing"
+	"time"
 
 	"github.com/datawire/dlib/dcontext"
 	"github.com/datawire/dlib/dexec"
@@ -92,4 +93,34 @@ func TestSoftHelperProcess(*testing.T) {
 	for sig := range sigs {
 		fmt.Println("caught signal:", sig)
 	}
+}
+
+func TestSoftCancelCantStart(t *testing.T) {
+	ctx := dlog.NewTestContext(t, true)
+	ctx, hardCancel := context.WithCancel(ctx)
+	defer hardCancel()
+	ctx = dcontext.WithSoftness(ctx)
+	ctx, softCancel := context.WithCancel(ctx)
+	defer softCancel()
+
+	cmd := dexec.CommandContext(ctx, "/")
+	err := cmd.Start()
+	if err == nil {
+		t.Fatal("expected to get an error from Start()")
+	}
+	if err.Error() != `exec: "/": permission denied` {
+		t.Errorf("unexpected error value: %v", err)
+	}
+
+	// The main thing that this test is checking for is ensuring that that the cancel handler
+	// doesn't get set up if Start() fails.  So we're going to try to trigger it, which if it
+	// did get set up will cause a panic.
+
+	softCancel()                // Trigger a soft cancel
+	time.Sleep(1 * time.Second) // Give the cancel handler a chance to run
+
+	hardCancel()                // Trigger a hard cancel
+	time.Sleep(1 * time.Second) // Give the cancel handler a chance to run
+
+	// We didn't panic, so the test passes.
 }
