@@ -151,19 +151,19 @@ func (c *Cmd) Start() error {
 				dlog.Printf(c.ctx, "[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
 			}
 		}
-	}
-	if c.ctx != dcontext.HardContext(c.ctx) {
-		c.waitDone = make(chan struct{})
-		go func() {
-			select {
-			case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
-				// let os/exec send SIGKILL
-			case <-c.ctx.Done(): // soft shutdown
-				_ = c.Cmd.Process.Signal(os.Interrupt) // send SIGINT
-			case <-c.waitDone:
-				// it exited on its own
-			}
-		}()
+		if c.ctx != dcontext.HardContext(c.ctx) {
+			c.waitDone = make(chan struct{})
+			go func() {
+				select {
+				case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
+					// let os/exec send SIGKILL
+				case <-c.ctx.Done(): // soft shutdown
+					_ = c.Cmd.Process.Signal(os.Interrupt) // send SIGINT
+				case <-c.waitDone:
+					// it exited on its own
+				}
+			}()
+		}
 	}
 	c.pidlock.Unlock()
 	return err
