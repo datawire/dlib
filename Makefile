@@ -16,7 +16,7 @@ help:
 
 dlib.cov: test
 test:
-	go test -coverprofile=dlib.cov -race ./...
+	go test -coverprofile=dlib.cov -coverpkg=./... -race ./...
 .PHONY: test
 
 %.cov.html: %.cov
