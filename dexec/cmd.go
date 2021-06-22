@@ -128,6 +128,8 @@ func (c *Cmd) logiofn(stream string) func(error, []byte) {
 		if err != nil {
 			ctx = dlog.WithField(ctx, "dexec.err", err)
 		}
+		// We don't have an additional message to log; all of the info that we want to log
+		// is provided via dlog.WithField.
 		dlog.Print(ctx)
 	}
 }
