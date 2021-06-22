@@ -40,6 +40,12 @@ var testLoggers = map[string]func(*testing.T) context.Context{
 	"testing": func(t *testing.T) context.Context {
 		return dlog.WithLogger(context.Background(), dlog.WrapTB(t, false))
 	},
+	"testing-without-timestamps": func(t *testing.T) context.Context {
+		return dlog.NewTestContextWithOpts(t, dlog.WithTimestampLogging(false))
+	},
+	"testing-with-timestamps": func(t *testing.T) context.Context {
+		return dlog.NewTestContextWithOpts(t, dlog.WithTimestampLogging(true))
+	},
 }
 
 func TestCaller(t *testing.T) {
@@ -48,6 +54,15 @@ func TestCaller(t *testing.T) {
 	doLog(dlog.WithLogger(context.Background(), dlog.WrapTB(t, false))) // initialize logPos
 	expectedPos := fmt.Sprintf("%s:%d", filepath.Base(logPos.File), logPos.Line)
 	t.Logf("expected pos = %q", expectedPos)
+
+	expectedFormats := map[string]func(string) bool{
+		"testing-without-timestamps": func(line string) bool {
+			return !strings.Contains(line, "timestamp=")
+		},
+		"testing-with-timestamps": func(line string) bool {
+			return strings.Contains(line, "timestamp=")
+		},
+	}
 
 	for testname := range testLoggers {
 		testname := testname
@@ -72,6 +87,11 @@ func TestCaller(t *testing.T) {
 			if !strings.Contains(logline, expectedPos) {
 				t.Errorf("it does not appear that the log reported itself as coming from %q",
 					expectedPos)
+			}
+			if formatCheck, ok := expectedFormats[testname]; ok {
+				if !formatCheck(logline) {
+					t.Errorf("Line %s did not match its expected format", logline)
+				}
 			}
 		})
 	}
@@ -220,4 +240,16 @@ func TestFormating(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestFallbackLogger(t *testing.T) {
+	var log testLog
+	dlog.SetFallbackLogger(testLogger{log: &log})
+	// Create a new context off the background to make sure it resorts to the fallback
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	expectedLog := "test log!"
+	dlog.Info(ctx, expectedLog)
+	assert.Len(t, log.entries, 1)
+	assert.Equal(t, expectedLog, log.entries[0].message)
 }
