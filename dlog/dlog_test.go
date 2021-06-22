@@ -241,3 +241,15 @@ func TestFormating(t *testing.T) {
 		})
 	}
 }
+
+func TestFallbackLogger(t *testing.T) {
+	var log testLog
+	dlog.SetFallbackLogger(testLogger{log: &log})
+	// Create a new context off the background to make sure it resorts to the fallback
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	expectedLog := "test log!"
+	dlog.Info(ctx, expectedLog)
+	assert.Len(t, log.entries, 1)
+	assert.Equal(t, expectedLog, log.entries[0].message)
+}
