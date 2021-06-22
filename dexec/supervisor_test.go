@@ -62,6 +62,7 @@ func TestCommandRunLogging(t *testing.T) {
 			Out: logoutput,
 			Formatter: &logrus.TextFormatter{
 				DisableTimestamp: true,
+				SortingFunc:      dlog.DefaultFieldSort,
 			},
 			Hooks: make(logrus.LevelHooks),
 			Level: logrus.DebugLevel,
@@ -77,15 +78,18 @@ func TestCommandRunLogging(t *testing.T) {
 
 	//nolint:lll
 	expectedLines := []string{
-		`level=info msg="[pid:XXPIDXX] started command []string{\"bash\", \"-c\", \"cat; for i in $(seq 1 3); do echo $i; sleep 0.2; done\"}"`,
-		`level=info msg="[pid:XXPIDXX] stdin  < EOF"`,
-		`level=info msg="[pid:XXPIDXX] stdout+stderr > \"1\\n\""`,
-		`level=info msg="[pid:XXPIDXX] stdout+stderr > \"2\\n\""`,
-		`level=info msg="[pid:XXPIDXX] stdout+stderr > \"3\\n\""`,
-		`level=info msg="[pid:XXPIDXX] finished successfully: exit status 0"`,
+		`level=info dexec.pid=XXPIDXX msg="started command [\"bash\" \"-c\" \"cat; for i in $(seq 1 3); do echo $i; sleep 0.2; done\"]"`,
+		`level=info dexec.pid=XXPIDXX dexec.stream=stdin dexec.err=EOF`,
+		`level=info dexec.pid=XXPIDXX dexec.stream=stdout+stderr dexec.data="1\n"`,
+		`level=info dexec.pid=XXPIDXX dexec.stream=stdout+stderr dexec.data="2\n"`,
+		`level=info dexec.pid=XXPIDXX dexec.stream=stdout+stderr dexec.data="3\n"`,
+		`level=info dexec.pid=XXPIDXX msg="finished successfully: exit status 0"`,
 		``,
 	}
-	receivedLines := strings.Split(regexp.MustCompile("pid:[0-9]+").ReplaceAllString(logoutput.String(), "pid:XXPIDXX"), "\n") //nolint:lll
+	receivedLines := strings.Split(
+		regexp.MustCompile("dexec.pid=[0-9]+").
+			ReplaceAllString(logoutput.String(), "dexec.pid=XXPIDXX"),
+		"\n")
 	if len(receivedLines) != len(expectedLines) {
 		t.Log("log output didn't have the correct number of lines:")
 		for i, line := range expectedLines {
