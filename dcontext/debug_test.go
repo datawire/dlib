@@ -12,8 +12,15 @@ import (
 )
 
 func TestDebug(t *testing.T) {
+	// Start with the base context.Background() and keep wrapping it, each
+	// testcase creating another generation of grandchildren.  At each
+	// generation, we make sure that it didn't throw away debug info from
+	// previous generations.
 	ctx := context.Background()
 	var cancel context.CancelFunc
+	// Because each testcase is adding to the chain, we have to run them in
+	// order, so this is a []struct{Name; ...} instead of a
+	// map[string]struct{...}.
 	testcases := []struct {
 		Name   string
 		SetCtx func()
@@ -33,7 +40,14 @@ func TestDebug(t *testing.T) {
 	}
 	t.Log(fmt.Sprint(ctx))
 	for _, tc := range testcases {
-		tc := tc
+		tc := tc // capture loop variable
+
+		// It's a little weird to t.Run this because we must run all of
+		// them in order, so the -run= flag to select specific subtests
+		// won't really be useful.  But because we check before:= again
+		// instead of just swapping before=after, later steps should be
+		// resilient to breakage in earlier steps, so t.Run is nice
+		// because it will tell us exactly which cases are failing.
 		t.Run(tc.Name, func(t *testing.T) {
 			before := fmt.Sprint(ctx)
 			tc.SetCtx()

@@ -25,8 +25,7 @@ func TestWithoutCancel(t *testing.T) {
 	ctx, cancel := context.WithTimeout(ctx, 0)
 	defer cancel()
 	ctx = context.WithValue(ctx, ctxKey{}, "foo")
-	for ctx.Err() == nil {
-	}
+	<-ctx.Done()
 
 	// sanity check
 	deadline, ok := ctx.Deadline()
