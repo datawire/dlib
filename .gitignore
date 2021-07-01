@@ -1,3 +1,7 @@
 *.cov
 *.cov.html
+
 vendor/
+
+*.unmod
+borrowed.patch

@@ -1,6 +1,6 @@
-// MODIFIED: This file is copied verbatim from Go 1.15.5 os/exec/exec_linux_test.go,
-// MODIFIED: except for lines marked "MODIFIED".
-//
+// MODIFIED: META: This file is copied verbatim from Go 1.15.14 os/exec/exec_linux_test.go,
+// MODIFIED: META: except for lines marked "MODIFIED".
+
 // Copyright 2020 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -15,7 +15,7 @@
 // file descriptors. Work around the problem by creating threads up front.
 // See issue 25628.
 
-package dexec_test // MODIFIED
+package dexec_test // MODIFIED: FROM: package exec_test
 
 import (
 	"os"

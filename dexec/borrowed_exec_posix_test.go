@@ -1,13 +1,13 @@
-// MODIFIED: This file is copied verbatim from Go 1.15.5 os/exec/exec_posix_test.go,
-// MODIFIED: except for lines marked "MODIFIED".
-//
+// MODIFIED: META: This file is copied verbatim from Go 1.15.14 os/exec/exec_posix_test.go,
+// MODIFIED: META: except for lines marked "MODIFIED".
+
 // Copyright 2017 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 // +build aix darwin dragonfly freebsd linux netbsd openbsd solaris
 
-package dexec_test // MODIFIED
+package dexec_test // MODIFIED: FROM: package exec_test
 
 import (
 	"os/user"

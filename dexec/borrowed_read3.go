@@ -1,6 +1,6 @@
-// MODIFIED: This file is copied verbatim from Go 1.15.5 os/exec/read3.go,
-// MODIFIED: except for lines marked "MODIFIED".
-//
+// MODIFIED: META: This file is copied verbatim from Go 1.15.14 os/exec/read3.go,
+// MODIFIED: META: except for lines marked "MODIFIED".
+
 // Copyright 2020 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -17,7 +17,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/datawire/dlib/dexec/internal/poll" // MODIFIED
+	"github.com/datawire/dlib/dexec/internal/poll" // MODIFIED: FROM: "internal/poll"
 	"io/ioutil"
 	"os"
 	"os/exec"
