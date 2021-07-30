@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  windows: circleci/windows@2.4.0
+
 commands:
 
   "dirty-check":
@@ -21,9 +24,34 @@ commands:
                exit 1
             fi
 
+  "install-go":
+    parameters:
+      version:
+        type: string
+        default: "1.15"
+    steps:
+      - run:
+          name: "Install Go << parameters.version >>"
+          command: |
+            set -x
+            if [[ $OS == Windows_NT ]]; then
+              curl https://dl.google.com/go/go<< parameters.version >>.windows-amd64.zip -o /tmp/go.zip
+              mv /c/go /c/go-112
+              unzip -q /tmp/go.zip -d /c/
+            else
+              curl https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
+              tar -C /tmp -xzf /tmp/go.tar.gz
+              echo 'export PATH=/tmp/go/bin:$PATH' >> "$BASH_ENV"
+              if [ -z "$(/tmp/go/bin/go env GOPROXY)" ]; then
+                echo 'export GOPROXY=https://proxy.golang.org' >> "$BASH_ENV"
+              fi
+              . "$BASH_ENV"
+            fi
+            go version
+
 jobs:
 
-  "test":
+  "test-linux":
     docker:
     - image: golang:1.15
     resource_class: small
@@ -39,6 +67,23 @@ jobs:
             .circleci/goveralls -coverprofile=dlib.cov -service=circle-ci -repotoken=$COVERALLS_TOKEN
           fi
         when: always
+
+  "test-darwin":
+    macos:
+      xcode: "12.4.0"
+    steps:
+    - install-go
+    - checkout
+    - run: make test
+
+  "test-windows":
+    executor:
+      name: windows/default
+      shell: bash.exe
+    steps:
+    - install-go
+    - checkout
+    - run: go test -race ./...
 
   "lint":
     docker:
@@ -62,6 +107,8 @@ workflows:
 
   "dlib":
     jobs:
-    - "test"
+    - "test-linux"
+    - "test-darwin"
+    - "test-windows"
     - "lint"
     - "generate"
