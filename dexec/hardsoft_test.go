@@ -46,6 +46,9 @@ func init() {
 	}
 }
 
+// newInterruptableSysProcAttr gets overridden in hardsoft_windows_test.go
+var newInterruptableSysProcAttr = func() *syscall.SysProcAttr { return nil }
+
 func TestSoftCancel(t *testing.T) {
 	log := &strings.Builder{}
 	ctx := newCapturingContext(t, log)
@@ -58,6 +61,7 @@ func TestSoftCancel(t *testing.T) {
 		lines: make(chan string, 50),
 	}
 	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestSoftHelperProcess")
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	cmd.Stdout = output
 	if err := cmd.Start(); err != nil {
@@ -102,6 +106,32 @@ func TestSoftCancel(t *testing.T) {
 		log.String())
 }
 
+func TestSoftCancelUnsupported(t *testing.T) {
+	ctx := dcontext.WithSoftness(context.Background())
+
+	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestHelperProcess", "--", "echo", "foo")
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	err := cmd.Start()
+	switch runtime.GOOS {
+	case "windows":
+		if err == nil {
+			t.Error("expected an error from cmd.Start() but did not get one")
+		} else if err.Error() != "dexec.Cmd.Start: on GOOS=windows it is an error to use soft cancellation without CREATE_NEW_PROCESS_GROUP" {
+			t.Errorf("unexpected error value: %v", err)
+		}
+	default:
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err == nil {
+		if err := cmd.Wait(); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestHardCancel(t *testing.T) {
 	log := &strings.Builder{}
 	ctx := newCapturingContext(t, log)
@@ -113,6 +143,7 @@ func TestHardCancel(t *testing.T) {
 		lines: make(chan string, 50),
 	}
 	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestSoftHelperProcess")
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	cmd.Stdout = output
 	if err := cmd.Start(); err != nil {
@@ -174,6 +205,7 @@ func TestSoftCancelCantStart(t *testing.T) {
 	defer softCancel()
 
 	cmd := dexec.CommandContext(ctx, "/")
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	err := cmd.Start()
 	if err == nil {
 		t.Fatal("expected to get an error from Start()")
@@ -208,6 +240,7 @@ func TestSoftCancelDeadContext(t *testing.T) {
 	softCancel()
 
 	cmd := dexec.CommandContext(ctx, os.Args[0])
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	err := cmd.Start()
 	if err == nil {
 		t.Fatal("expected to get an error from Start()")
@@ -225,6 +258,7 @@ func TestSoftCancelSelfExit(t *testing.T) {
 	ctx = dcontext.WithSoftness(ctx)
 
 	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestHelperProcess", "--", "echo", "foo")
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 
 	if err := cmd.Run(); err != nil {
