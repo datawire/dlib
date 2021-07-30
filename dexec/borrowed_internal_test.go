@@ -48,6 +48,11 @@ func TestPrefixSuffixSaver(t *testing.T) {
 			writes: []string{"ab_______________________y", "z"},
 			want:   "ab\n... omitting 23 bytes ...\nyz",
 		},
+		{ // MODIFIED: ADDED
+			N:      2,                                            // MODIFIED: ADDED
+			writes: []string{"ab_______________________x", "yz"}, // MODIFIED: ADDED
+			want:   "ab\n... omitting 24 bytes ...\nyz",          // MODIFIED: ADDED
+		}, // MODIFIED: ADDED
 	}
 	for i, tt := range tests {
 		w := &prefixSuffixSaver{N: tt.N}

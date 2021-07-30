@@ -17,8 +17,10 @@ SHELL = bash
 # Test
 
 dlib.cov: test
+	test -e $@
+	touch $@
 test:
-	go test -coverprofile=dlib.cov -coverpkg=./... -race ./...
+	go test -count=1 -coverprofile=dlib.cov -coverpkg=./... -race ./...
 .PHONY: test
 
 %.cov.html: %.cov
