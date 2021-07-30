@@ -80,7 +80,12 @@ type Cmd struct {
 	*exec.Cmd
 	osCancel context.CancelFunc
 
+	// DisableLogging disables all logging.
 	DisableLogging bool
+
+	// DisableIOLogging disables logging of data sent over stdin, stdout, and stderr; but still
+	// logs information about the process launch and termination
+	DisableIOLogging bool
 
 	ctx context.Context
 
@@ -116,7 +121,7 @@ func CommandContext(ctx context.Context, name string, arg ...string) *Cmd {
 
 func (c *Cmd) logiofn(stream string) func(error, []byte) {
 	return func(err error, msg []byte) {
-		if c.DisableLogging {
+		if c.DisableLogging || c.DisableIOLogging {
 			return
 		}
 
@@ -165,14 +170,16 @@ func (c *Cmd) Start() error {
 		if !c.DisableLogging {
 			ctx := dlog.WithField(c.ctx, "dexec.pid", c.Process.Pid)
 			dlog.Printf(ctx, "started command %q", c.Args)
-			if stdin, isFile := c.Stdin.(*os.File); isFile {
-				dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stdin"), "not logging input read from file %q", stdin.Name())
-			}
-			if stdout, isFile := c.Stdout.(*os.File); isFile {
-				dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stdout"), "not logging output written to file %q", stdout.Name())
-			}
-			if stderr, isFile := c.Stderr.(*os.File); isFile {
-				dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stderr"), "not logging output written to file %q", stderr.Name())
+			if !c.DisableIOLogging {
+				if stdin, isFile := c.Stdin.(*os.File); isFile {
+					dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stdin"), "not logging input read from file %q", stdin.Name())
+				}
+				if stdout, isFile := c.Stdout.(*os.File); isFile {
+					dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stdout"), "not logging output written to file %q", stdout.Name())
+				}
+				if stderr, isFile := c.Stderr.(*os.File); isFile {
+					dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stderr"), "not logging output written to file %q", stderr.Name())
+				}
 			}
 		}
 		c.waitDone = make(chan struct{})

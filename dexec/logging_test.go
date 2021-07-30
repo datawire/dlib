@@ -168,9 +168,10 @@ func TestOutputErrors(t *testing.T) {
 
 func TestLogging(t *testing.T) {
 	testcases := map[string]struct {
-		InputStdout         io.Writer
-		InputDisableLogging bool
-		ExpectedOutput      string
+		InputStdout           io.Writer
+		InputDisableLogging   bool
+		InputDisableIOLogging bool
+		ExpectedOutput        string
 	}{
 		"default": {
 			InputStdout: &strings.Builder{},
@@ -185,6 +186,13 @@ func TestLogging(t *testing.T) {
 			InputDisableLogging: true,
 			ExpectedOutput:      "",
 		},
+		"DisableIOLogging": {
+			InputStdout:           &strings.Builder{},
+			InputDisableIOLogging: true,
+			ExpectedOutput: `` +
+				`level=info msg="started command [` + quote15(os.Args[0]) + ` \"-test.run=TestLoggingHelperProcess\"]" dexec.pid={{ .PID }}` + "\n" +
+				`level=info msg="finished successfully: exit status 0" dexec.pid={{ .PID }}` + "\n",
+		},
 	}
 	for tcName, tcData := range testcases {
 		tcData := tcData
@@ -196,6 +204,7 @@ func TestLogging(t *testing.T) {
 			cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 			cmd.Stdout = tcData.InputStdout
 			cmd.DisableLogging = tcData.InputDisableLogging
+			cmd.DisableIOLogging = tcData.InputDisableIOLogging
 
 			assert.NoError(t, cmd.Run())
 
