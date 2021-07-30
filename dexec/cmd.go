@@ -47,10 +47,14 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/signal"
+	"runtime"
 	"sync"
+	"syscall"
 
 	"github.com/datawire/dlib/dcontext"
 	"github.com/datawire/dlib/dlog"
+	"github.com/datawire/dlib/internal/sigint"
 )
 
 // Error is returned by LookPath when it fails to classify a file as an
@@ -140,6 +144,9 @@ func (c *Cmd) logiofn(stream string) func(error, []byte) {
 	}
 }
 
+// This gets set in cmd_windows.go.
+var sysProcAttrForNewGroup syscall.SysProcAttr
+
 // Start starts the specified command but does not wait for it to complete.
 //
 // See the os/exec.Cmd.Start documenaton for more information.
@@ -158,6 +165,19 @@ func (c *Cmd) Start() error {
 		c.osCancel()
 	default:
 	}
+
+	// On Windows when you send "os.Interrupt" (really syscall.CTRL_BREAK_EVENT) it goes to
+	// *all* processes in the process group.  So if we're going to be sending it ourselves, put
+	// the child process in its own group.  However, we'll also need to propegate it if
+	// something else sends it to our whole group, for consistency with the vanilla behavior.
+	var windowsInterruptCh chan os.Signal
+	if runtime.GOOS == "windows" && c.ctx != dcontext.HardContext(c.ctx) {
+		windowsInterruptCh := make(chan os.Signal, 10)
+		signal.Notify(windowsInterruptCh, os.Interrupt)
+		procAttr := sysProcAttrForNewGroup
+		c.SysProcAttr = &procAttr
+	}
+
 	err := c.Cmd.Start()
 	if err != nil {
 		c.osCancel()
@@ -178,10 +198,20 @@ func (c *Cmd) Start() error {
 		c.waitDone = make(chan struct{})
 		c.supervisorDone = make(chan struct{})
 		go func() {
-			defer close(c.supervisorDone)
+			defer func() {
+				if windowsInterruptCh != nil {
+					signal.Stop(windowsInterruptCh)
+				}
+				close(c.supervisorDone)
+			}()
 			if c.ctx != dcontext.HardContext(c.ctx) {
 				// possibly-soft shutdown
 				select {
+				case <-windowsInterruptCh:
+					if !c.DisableLogging {
+						dlog.Print(c.ctx, "sending SIGINT")
+					}
+					_ = sigint.SendInterrupt(c.Cmd.Process)
 				case <-c.ctx.Done(): // shutdown
 					select {
 					case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
@@ -194,21 +224,30 @@ func (c *Cmd) Start() error {
 						if !c.DisableLogging {
 							dlog.Print(c.ctx, "sending SIGINT")
 						}
-						_ = c.Cmd.Process.Signal(os.Interrupt)
+						_ = sigint.SendInterrupt(c.Cmd.Process)
 					}
 				case <-c.waitDone:
 					// it exited on its own
 					return
 				}
 			}
-			select {
-			case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
-				if !c.DisableLogging {
-					dlog.Print(c.ctx, "sending SIGKILL")
+			for {
+				select {
+				case <-windowsInterruptCh:
+					if !c.DisableLogging {
+						dlog.Print(c.ctx, "sending SIGINT")
+					}
+					_ = sigint.SendInterrupt(c.Cmd.Process)
+				case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
+					if !c.DisableLogging {
+						dlog.Print(c.ctx, "sending SIGKILL")
+					}
+					c.osCancel() // let os/exec send it for us
+					return
+				case <-c.waitDone:
+					// it exited on its own
+					return
 				}
-				c.osCancel() // let os/exec send it for us
-			case <-c.waitDone:
-				// it exited on its own
 			}
 		}()
 	}
