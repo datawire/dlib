@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"text/template"
@@ -37,6 +38,15 @@ func newCapturingContext(tb testing.TB, w io.Writer) context.Context {
 	ctx, cancel := context.WithCancel(ctx)
 	tb.Cleanup(cancel)
 	return ctx
+}
+
+// quote a string 1.5 times (quote it, then escape everything again but don't wrap it in quote
+// characters).
+func quote15(s string) string {
+	s = strconv.Quote(s)
+	s = strconv.Quote(s)
+	s = s[1 : len(s)-1]
+	return s
 }
 
 func TestOutputErrors(t *testing.T) {
@@ -125,7 +135,7 @@ func TestOutputErrors(t *testing.T) {
 	}
 
 	tmpl, err := template.New("expected.log.txt").Parse(`` +
-		`level=info msg="started command [\"` + os.Args[0] + `\" \"-test.run=TestLoggingHelperProcess\"]" dexec.pid={{ .PID }}` + "\n" +
+		`level=info msg="started command [` + quote15(os.Args[0]) + ` \"-test.run=TestLoggingHelperProcess\"]" dexec.pid={{ .PID }}` + "\n" +
 		`level=info dexec.err=EOF dexec.pid={{ .PID }} dexec.stream=stdin` + "\n" +
 		`level=info dexec.data="this is stdout\n" dexec.pid={{ .PID }} dexec.stream={{ .Stream }}` + "\n" +
 		`level=info msg="finished successfully: exit status 0" dexec.pid={{ .PID }}` + "\n" +
@@ -175,7 +185,7 @@ func TestLogging(t *testing.T) {
 		"default": {
 			InputStdout: &strings.Builder{},
 			ExpectedOutput: `` +
-				`level=info msg="started command [\"` + os.Args[0] + `\" \"-test.run=TestLoggingHelperProcess\"]" dexec.pid={{ .PID }}` + "\n" +
+				`level=info msg="started command [` + quote15(os.Args[0]) + ` \"-test.run=TestLoggingHelperProcess\"]" dexec.pid={{ .PID }}` + "\n" +
 				`level=info dexec.err=EOF dexec.pid={{ .PID }} dexec.stream=stdin` + "\n" +
 				`level=info dexec.data="this is stdout\n" dexec.pid={{ .PID }} dexec.stream=stdout` + "\n" +
 				`level=info msg="finished successfully: exit status 0" dexec.pid={{ .PID }}` + "\n",

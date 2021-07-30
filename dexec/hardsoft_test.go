@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"syscall"
 	"testing"
@@ -35,6 +36,14 @@ func (b *lineBuffer) Write(p []byte) (int, error) {
 		b.lines <- string(line)
 	}
 	return n, nil
+}
+
+var errKilled = "signal: killed"
+
+func init() {
+	if runtime.GOOS == "windows" {
+		errKilled = "exit status 1"
+	}
 }
 
 func TestSoftCancel(t *testing.T) {
@@ -77,19 +86,19 @@ func TestSoftCancel(t *testing.T) {
 	if _, ok := err.(*dexec.ExitError); !ok {
 		t.Errorf("error is of the wrong type: %[1]T(%[1]v)", err)
 	}
-	if err.Error() != "signal: killed" {
+	if err.Error() != errKilled {
 		t.Errorf("unexpected error value: %v", err)
 	}
 
 	assert.Equal(t, fmt.Sprintf(``+
-		`level=info msg="started command [\"%[1]s\" \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info msg="started command [%[1]s \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
 		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
 		`level=info dexec.data="started\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
 		`level=info msg="sending SIGINT"`+"\n"+
 		`level=info dexec.data="caught signal: interrupt\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
 		`level=info msg="sending SIGKILL"`+"\n"+
-		`level=info msg="finished with error: signal: killed" dexec.pid=%[2]d`+"\n"+
-		``, os.Args[0], cmd.ProcessState.Pid()),
+		`level=info msg="finished with error: `+errKilled+`" dexec.pid=%[2]d`+"\n"+
+		``, quote15(os.Args[0]), cmd.ProcessState.Pid()),
 		log.String())
 }
 
@@ -125,17 +134,17 @@ func TestHardCancel(t *testing.T) {
 	if _, ok := err.(*dexec.ExitError); !ok {
 		t.Errorf("error is of the wrong type: %[1]T(%[1]v)", err)
 	}
-	if err.Error() != "signal: killed" {
+	if err.Error() != errKilled {
 		t.Errorf("unexpected error value: %v", err)
 	}
 
 	assert.Equal(t, fmt.Sprintf(``+
-		`level=info msg="started command [\"%[1]s\" \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info msg="started command [%[1]s \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
 		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
 		`level=info dexec.data="started\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
 		`level=info msg="sending SIGKILL"`+"\n"+
-		`level=info msg="finished with error: signal: killed" dexec.pid=%[2]d`+"\n"+
-		``, os.Args[0], cmd.ProcessState.Pid()),
+		`level=info msg="finished with error: `+errKilled+`" dexec.pid=%[2]d`+"\n"+
+		``, quote15(os.Args[0]), cmd.ProcessState.Pid()),
 		log.String())
 }
 
@@ -169,7 +178,11 @@ func TestSoftCancelCantStart(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected to get an error from Start()")
 	}
-	if err.Error() != `exec: "/": permission denied` {
+	expErr := "permission denied"
+	if runtime.GOOS == "windows" {
+		expErr = "file does not exist"
+	}
+	if err.Error() != `exec: "/": `+expErr {
 		t.Errorf("unexpected error value: %v", err)
 	}
 
@@ -218,10 +231,10 @@ func TestSoftCancelSelfExit(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, fmt.Sprintf(``+
-		`level=info msg="started command [\"%[1]s\" \"-test.run=TestHelperProcess\" \"--\" \"echo\" \"foo\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info msg="started command [%[1]s \"-test.run=TestHelperProcess\" \"--\" \"echo\" \"foo\"]" dexec.pid=%[2]d`+"\n"+
 		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
 		`level=info dexec.data="foo\n" dexec.pid=%[2]d dexec.stream=stdout+stderr`+"\n"+
 		`level=info msg="finished successfully: exit status 0" dexec.pid=%[2]d`+"\n"+
-		``, os.Args[0], cmd.ProcessState.Pid()),
+		``, quote15(os.Args[0]), cmd.ProcessState.Pid()),
 		log.String())
 }
