@@ -1,11 +1,11 @@
-// MODIFIED: This file is copied verbatim from Go 1.15.5 os/exec/internal_test.go,
-// MODIFIED: except for lines marked "MODIFIED".
-//
+// MODIFIED: META: This file is copied verbatim from Go 1.15.14 os/exec/internal_test.go,
+// MODIFIED: META: except for lines marked "MODIFIED".
+
 // Copyright 2015 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package dexec // MODIFIED
+package dexec // MODIFIED: FROM: package exec
 
 import (
 	"io"
@@ -48,6 +48,11 @@ func TestPrefixSuffixSaver(t *testing.T) {
 			writes: []string{"ab_______________________y", "z"},
 			want:   "ab\n... omitting 23 bytes ...\nyz",
 		},
+		{ // MODIFIED: ADDED
+			N:      2,                                            // MODIFIED: ADDED
+			writes: []string{"ab_______________________x", "yz"}, // MODIFIED: ADDED
+			want:   "ab\n... omitting 24 bytes ...\nyz",          // MODIFIED: ADDED
+		}, // MODIFIED: ADDED
 	}
 	for i, tt := range tests {
 		w := &prefixSuffixSaver{N: tt.N}

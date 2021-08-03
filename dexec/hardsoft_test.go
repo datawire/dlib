@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/datawire/dlib/dcontext"
 	"github.com/datawire/dlib/dexec"
-	"github.com/datawire/dlib/dlog"
 )
 
 type lineBuffer struct {
@@ -36,7 +38,8 @@ func (b *lineBuffer) Write(p []byte) (int, error) {
 }
 
 func TestSoftCancel(t *testing.T) {
-	ctx := dlog.NewTestContext(t, true)
+	log := &strings.Builder{}
+	ctx := newCapturingContext(t, log)
 	ctx, hardCancel := context.WithCancel(ctx)
 	defer hardCancel()
 	ctx = dcontext.WithSoftness(ctx)
@@ -77,6 +80,63 @@ func TestSoftCancel(t *testing.T) {
 	if err.Error() != "signal: killed" {
 		t.Errorf("unexpected error value: %v", err)
 	}
+
+	assert.Equal(t, fmt.Sprintf(``+
+		`level=info msg="started command [\"%[1]s\" \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
+		`level=info dexec.data="started\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
+		`level=info msg="sending SIGINT"`+"\n"+
+		`level=info dexec.data="caught signal: interrupt\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
+		`level=info msg="sending SIGKILL"`+"\n"+
+		`level=info msg="finished with error: signal: killed" dexec.pid=%[2]d`+"\n"+
+		``, os.Args[0], cmd.ProcessState.Pid()),
+		log.String())
+}
+
+func TestHardCancel(t *testing.T) {
+	log := &strings.Builder{}
+	ctx := newCapturingContext(t, log)
+	ctx, hardCancel := context.WithCancel(ctx)
+	defer hardCancel()
+	ctx = dcontext.WithSoftness(ctx)
+
+	output := &lineBuffer{
+		lines: make(chan string, 50),
+	}
+	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestSoftHelperProcess")
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	cmd.Stdout = output
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+
+	// give it a chance to set up the signal handler
+	line := <-output.lines
+	if line != "started\n" {
+		t.Fatalf("didn't get expected output: %q", line)
+	}
+
+	// send SIGKILL
+	hardCancel()
+	err := cmd.Wait()
+	if err == nil {
+		t.Fatal("expected to get an error from Wait()")
+	}
+	if _, ok := err.(*dexec.ExitError); !ok {
+		t.Errorf("error is of the wrong type: %[1]T(%[1]v)", err)
+	}
+	if err.Error() != "signal: killed" {
+		t.Errorf("unexpected error value: %v", err)
+	}
+
+	assert.Equal(t, fmt.Sprintf(``+
+		`level=info msg="started command [\"%[1]s\" \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
+		`level=info dexec.data="started\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
+		`level=info msg="sending SIGKILL"`+"\n"+
+		`level=info msg="finished with error: signal: killed" dexec.pid=%[2]d`+"\n"+
+		``, os.Args[0], cmd.ProcessState.Pid()),
+		log.String())
 }
 
 func TestSoftHelperProcess(*testing.T) {
@@ -96,7 +156,8 @@ func TestSoftHelperProcess(*testing.T) {
 }
 
 func TestSoftCancelCantStart(t *testing.T) {
-	ctx := dlog.NewTestContext(t, true)
+	log := &strings.Builder{}
+	ctx := newCapturingContext(t, log)
 	ctx, hardCancel := context.WithCancel(ctx)
 	defer hardCancel()
 	ctx = dcontext.WithSoftness(ctx)
@@ -123,4 +184,44 @@ func TestSoftCancelCantStart(t *testing.T) {
 	time.Sleep(1 * time.Second) // Give the cancel handler a chance to run
 
 	// We didn't panic, so the test passes.
+	assert.Equal(t, "", log.String())
+}
+
+func TestSoftCancelDeadContext(t *testing.T) {
+	log := &strings.Builder{}
+	ctx := newCapturingContext(t, log)
+	ctx = dcontext.WithSoftness(ctx)
+	ctx, softCancel := context.WithCancel(ctx)
+	softCancel()
+
+	cmd := dexec.CommandContext(ctx, os.Args[0])
+	err := cmd.Start()
+	if err == nil {
+		t.Fatal("expected to get an error from Start()")
+	}
+	if err.Error() != `context canceled` {
+		t.Errorf("unexpected error value: %v", err)
+	}
+
+	assert.Equal(t, "", log.String())
+}
+
+func TestSoftCancelSelfExit(t *testing.T) {
+	log := &strings.Builder{}
+	ctx := newCapturingContext(t, log)
+	ctx = dcontext.WithSoftness(ctx)
+
+	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestHelperProcess", "--", "echo", "foo")
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+
+	if err := cmd.Run(); err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, fmt.Sprintf(``+
+		`level=info msg="started command [\"%[1]s\" \"-test.run=TestHelperProcess\" \"--\" \"echo\" \"foo\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
+		`level=info dexec.data="foo\n" dexec.pid=%[2]d dexec.stream=stdout+stderr`+"\n"+
+		`level=info msg="finished successfully: exit status 0" dexec.pid=%[2]d`+"\n"+
+		``, os.Args[0], cmd.ProcessState.Pid()),
+		log.String())
 }

@@ -1,6 +1,6 @@
-// MODIFIED: This file is copied verbatim from Go 1.15.5 os/exec/exec_test.go,
-// MODIFIED: except for lines marked "MODIFIED".
-//
+// MODIFIED: META: This file is copied verbatim from Go 1.15.14 os/exec/exec_test.go,
+// MODIFIED: META: except for lines marked "MODIFIED".
+
 // Copyright 2009 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -8,15 +8,16 @@
 // Use an external test to avoid os/exec -> net/http -> crypto/x509 -> os/exec
 // circular dependency on non-cgo darwin.
 
-package dexec_test // MODIFIED
+package dexec_test // MODIFIED: FROM: package exec_test
 
 import (
 	"bufio"
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/datawire/dlib/dexec/internal/poll"    // MODIFIED
-	"github.com/datawire/dlib/dexec/internal/testenv" // MODIFIED
+	exec "github.com/datawire/dlib/dexec"             // MODIFIED: FROM: "os/exec"
+	"github.com/datawire/dlib/dexec/internal/poll"    // MODIFIED: FROM: "internal/poll"
+	"github.com/datawire/dlib/dexec/internal/testenv" // MODIFIED: FROM: "internal/testenv"
 	"io"
 	"io/ioutil"
 	"log"
@@ -31,8 +32,7 @@ import (
 	"testing"
 	"time"
 
-	exec "github.com/datawire/dlib/dexec" // MODIFIED
-	"github.com/datawire/dlib/dlog"       // MODIFIED
+	"github.com/datawire/dlib/dlog" // MODIFIED: ADDED
 )
 
 // haveUnexpectedFDs is set at init time to report whether any
@@ -82,7 +82,7 @@ func helperCommandContext(t *testing.T, ctx context.Context, s ...string) (cmd *
 	if ctx != nil {
 		cmd = exec.CommandContext(ctx, os.Args[0], cs...)
 	} else {
-		cmd = exec.CommandContext(dlog.NewTestContext(t, true), os.Args[0], cs...) // MODIFIED
+		cmd = exec.CommandContext(dlog.NewTestContext(t, true), os.Args[0], cs...) // MODIFIED: FROM: cmd = exec.Command(os.Args[0], cs...)
 	}
 	cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
 	return cmd
@@ -118,7 +118,7 @@ func TestCommandRelativeName(t *testing.T) {
 		t.Skipf("skipping; unexpected shallow dir of %q", dir)
 	}
 
-	cmd := exec.CommandContext(dlog.NewTestContext(t, true), filepath.Join(dirBase, base), "-test.run=TestHelperProcess", "--", "echo", "foo") // MODIFIED
+	cmd := exec.CommandContext(dlog.NewTestContext(t, true), filepath.Join(dirBase, base), "-test.run=TestHelperProcess", "--", "echo", "foo") // MODIFIED: FROM: cmd := exec.Command(filepath.Join(dirBase, base), "-test.run=TestHelperProcess", "--", "echo", "foo")
 	cmd.Dir = parentDir
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 
@@ -168,7 +168,7 @@ func TestEchoFileRace(t *testing.T) {
 
 func TestCatGoodAndBadFile(t *testing.T) {
 	// Testing combined output and error values.
-	bs, err := helperCommand(t, "cat", "/bogus/file.foo", "borrowed_exec_test.go").CombinedOutput() // MODIFIED
+	bs, err := helperCommand(t, "cat", "/bogus/file.foo", "borrowed_exec_test.go").CombinedOutput() // MODIFIED: FROM: bs, err := helperCommand(t, "cat", "/bogus/file.foo", "exec_test.go").CombinedOutput()
 	if _, ok := err.(*exec.ExitError); !ok {
 		t.Errorf("expected *exec.ExitError from cat combined; got %T: %v", err, err)
 	}
@@ -188,7 +188,7 @@ func TestCatGoodAndBadFile(t *testing.T) {
 
 func TestNoExistExecutable(t *testing.T) {
 	// Can't run a non-existent executable
-	err := exec.CommandContext(dlog.NewTestContext(t, true), "/no-exist-executable").Run() // MODIFIED
+	err := exec.CommandContext(dlog.NewTestContext(t, true), "/no-exist-executable").Run() // MODIFIED: FROM: err := exec.Command("/no-exist-executable").Run()
 	if err == nil {
 		t.Error("expected error from /no-exist-executable")
 	}
@@ -385,8 +385,7 @@ func TestStdinCloseRace(t *testing.T) {
 
 // Issue 5071
 func TestPipeLookPathLeak(t *testing.T) {
-	ctx := dlog.NewTestContext(t, true) // MODIFIED
-
+	ctx := dlog.NewTestContext(t, true) // MODIFIED: ADDED
 	// If we are reading from /proc/self/fd we (should) get an exact result.
 	tolerance := 0
 
@@ -414,7 +413,7 @@ func TestPipeLookPathLeak(t *testing.T) {
 				n, lsof := numOpenFDsAndroid(t)
 				return n, lsof, nil
 			}
-			lsof, err := exec.CommandContext(ctx, "lsof", "-b", "-n", "-p", strconv.Itoa(os.Getpid())).Output() // MODIFIED
+			lsof, err := exec.CommandContext(ctx, "lsof", "-b", "-n", "-p", strconv.Itoa(os.Getpid())).Output() // MODIFIED: FROM: lsof, err := exec.Command("lsof", "-b", "-n", "-p", strconv.Itoa(os.Getpid())).Output()
 			return bytes.Count(lsof, []byte("\n")), lsof, err
 		}
 
@@ -432,7 +431,7 @@ func TestPipeLookPathLeak(t *testing.T) {
 	}
 
 	for i := 0; i < 6; i++ {
-		cmd := exec.CommandContext(ctx, "something-that-does-not-exist-executable") // MODIFIED
+		cmd := exec.CommandContext(ctx, "something-that-does-not-exist-executable") // MODIFIED: FROM: cmd := exec.Command("something-that-does-not-exist-executable")
 		cmd.StdoutPipe()
 		cmd.StderrPipe()
 		cmd.StdinPipe()
@@ -457,7 +456,7 @@ func TestPipeLookPathLeak(t *testing.T) {
 }
 
 func numOpenFDsAndroid(t *testing.T) (n int, lsof []byte) {
-	raw, err := exec.CommandContext(dlog.NewTestContext(t, true), "lsof").Output() // MODIFIED
+	raw, err := exec.CommandContext(dlog.NewTestContext(t, true), "lsof").Output() // MODIFIED: FROM: raw, err := exec.Command("lsof").Output()
 	if err != nil {
 		t.Skip("skipping test; error finding or running lsof")
 	}
@@ -668,7 +667,7 @@ func TestExtraFiles(t *testing.T) {
 	tempdir := t.TempDir()
 	exe := filepath.Join(tempdir, "read3.exe")
 
-	c := exec.CommandContext(dlog.NewTestContext(t, true), testenv.GoToolPath(t), "build", "-o", exe, "borrowed_read3.go") // MODIFIED
+	c := exec.CommandContext(dlog.NewTestContext(t, true), testenv.GoToolPath(t), "build", "-o", exe, "borrowed_read3.go") // MODIFIED: FROM: c := exec.Command(testenv.GoToolPath(t), "build", "-o", exe, "read3.go")
 	// Build the test without cgo, so that C library functions don't
 	// open descriptors unexpectedly. See issue 25628.
 	c.Env = append(os.Environ(), "CGO_ENABLED=0")
@@ -678,7 +677,7 @@ func TestExtraFiles(t *testing.T) {
 	}
 
 	// Use a deadline to try to get some output even if the program hangs.
-	ctx := dlog.NewTestContext(t, true) // MODIFIED
+	ctx := dlog.NewTestContext(t, true) // MODIFIED: FROM: ctx := context.Background()
 	if deadline, ok := t.Deadline(); ok {
 		// Leave a 20% grace period to flush output, which may be large on the
 		// linux/386 builders because we're running the subprocess under strace.
@@ -884,7 +883,7 @@ func TestHelperProcess(*testing.T) {
 		fmt.Fprintf(os.Stderr, "child: %s", response)
 		os.Exit(0)
 	case "exec":
-		cmd := exec.CommandContext(context.Background(), args[1]) // MODIFIED
+		cmd := exec.CommandContext(context.Background(), args[1]) // MODIFIED: FROM: cmd := exec.Command(args[1])
 		cmd.Dir = args[0]
 		output, err := cmd.CombinedOutput()
 		if err != nil {
@@ -957,7 +956,7 @@ func TestClosePipeOnCopyError(t *testing.T) {
 	if runtime.GOOS == "windows" || runtime.GOOS == "plan9" {
 		t.Skipf("skipping test on %s - no yes command", runtime.GOOS)
 	}
-	cmd := exec.CommandContext(dlog.NewTestContext(t, true), "yes") // MODIFIED
+	cmd := exec.CommandContext(dlog.NewTestContext(t, true), "yes") // MODIFIED: FROM: cmd := exec.Command("yes")
 	cmd.Stdout = new(badWriter)
 	c := make(chan int, 1)
 	go func() {
@@ -992,7 +991,7 @@ func TestOutputStderrCapture(t *testing.T) {
 }
 
 func TestContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, true)) // MODIFIED
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, true)) // MODIFIED: FROM: ctx, cancel := context.WithCancel(context.Background())
 	c := helperCommandContext(t, ctx, "pipetest")
 	stdin, err := c.StdinPipe()
 	if err != nil {
@@ -1030,7 +1029,7 @@ func TestContext(t *testing.T) {
 }
 
 func TestContextCancel(t *testing.T) {
-	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, true)) // MODIFIED
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, true)) // MODIFIED: FROM: ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	c := helperCommandContext(t, ctx, "cat")
 
@@ -1128,9 +1127,9 @@ func TestString(t *testing.T) {
 		{"echo", []string{"a"}, echoPath + " a"},
 		{"echo", []string{"a", "b"}, echoPath + " a b"},
 	}
-	ctx := dlog.NewTestContext(t, true) // MODIFIED
+	ctx := dlog.NewTestContext(t, true) // MODIFIED: ADDED
 	for _, test := range tests {
-		cmd := exec.CommandContext(ctx, test.path, test.args...) // MODIFIED
+		cmd := exec.CommandContext(ctx, test.path, test.args...) // MODIFIED: FROM: cmd := exec.Command(test.path, test.args...)
 		if got := cmd.String(); got != test.want {
 			t.Errorf("String(%q, %q) = %q, want %q", test.path, test.args, got, test.want)
 		}
@@ -1142,7 +1141,7 @@ func TestStringPathNotResolved(t *testing.T) {
 	if err == nil {
 		t.Skip("wow, thanks")
 	}
-	cmd := exec.CommandContext(dlog.NewTestContext(t, true), "makemeasandwich", "-lettuce") // MODIFIED
+	cmd := exec.CommandContext(dlog.NewTestContext(t, true), "makemeasandwich", "-lettuce") // MODIFIED: FROM: cmd := exec.Command("makemeasandwich", "-lettuce")
 	want := "makemeasandwich -lettuce"
 	if got := cmd.String(); got != want {
 		t.Errorf("String(%q, %q) = %q, want %q", "makemeasandwich", "-lettuce", got, want)

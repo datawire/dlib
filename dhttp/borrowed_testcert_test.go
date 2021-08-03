@@ -1,11 +1,11 @@
-// MODIFIED: This file is a verbatim copy of Go 1.15.6 net/http/internal/testcert.go,
-// MODIFIED: except for lines marked "MODIFIED".
-//
+// MODIFIED: META: This file is a verbatim copy of Go 1.15.14 net/http/internal/testcert.go,
+// MODIFIED: META: except for lines marked "MODIFIED".
+
 // Copyright 2015 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package dhttp_test // MODIFIED
+package dhttp_test // MODIFIED: FROM: package internal
 
 import "strings"
 

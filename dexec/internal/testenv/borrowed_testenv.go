@@ -1,6 +1,6 @@
-// MODIFIED: This file is a verbatim subset of Go 1.15.5 internal/testenv/testenv.go,
-// MODIFIED: except that the imports list has been changed.
-//
+// MODIFIED: META: This file is a verbatim subset of Go 1.15.14 internal/testenv/testenv.go,
+// MODIFIED: META: except that the imports list has been changed.
+
 // Copyright 2015 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -15,8 +15,8 @@ package testenv
 
 import (
 	"errors"
-	exec "github.com/datawire/dlib/dexec"         // MODIFIED
-	"github.com/datawire/dlib/dexec/internal/cfg" // MODIFIED
+	exec "github.com/datawire/dlib/dexec"         // MODIFIED: FROM: "os/exec"
+	"github.com/datawire/dlib/dexec/internal/cfg" // MODIFIED: FROM: "internal/cfg"
 	"os"
 	"path/filepath"
 	"runtime"
