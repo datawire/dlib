@@ -1,12 +1,13 @@
 package derror_test
 
 import (
+	stderrors "errors"
 	"fmt"
 	"runtime"
 	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/datawire/dlib/derror"
 )
@@ -124,13 +125,28 @@ func TestPanicToError(t *testing.T) {
 		}
 	})
 	t.Run("non-error", func(t *testing.T) { checkErr(t, derror.PanicToError("foo")) })
-	t.Run("plain-error", func(t *testing.T) { checkErr(t, derror.PanicToError(errors.New("err"))) })
-	t.Run("wrapped-error", func(t *testing.T) {
+	t.Run("plain-pkgerror", func(t *testing.T) { checkErr(t, derror.PanicToError(pkgerrors.New("err"))) })
+	t.Run("plain-stderror", func(t *testing.T) { checkErr(t, derror.PanicToError(stderrors.New("err"))) })
+	t.Run("wrapped-pkgerror", func(t *testing.T) {
 		root := fmt.Errorf("x")
-		err := derror.PanicToError(errors.Wrap(root, "wrapped"))
+		err := derror.PanicToError(pkgerrors.Wrap(root, "wrapped"))
 		checkErr(t, err)
-		if errors.Cause(err) != root {
+		if pkgerrors.Cause(err) != root {
 			t.Error("error: error has the wrong cause")
+		}
+		if !stderrors.Is(err, root) {
+			t.Error("error: error has the wrong unwrap")
+		}
+	})
+	t.Run("wrapped-stderror", func(t *testing.T) {
+		root := fmt.Errorf("x")
+		err := derror.PanicToError(fmt.Errorf("wrapped: %w", root))
+		checkErr(t, err)
+		if cause := pkgerrors.Cause(err); cause == err || !stderrors.Is(cause, root) {
+			t.Error("error: error has the wrong cause")
+		}
+		if !stderrors.Is(err, root) {
+			t.Error("error: error has the wrong unwrap")
 		}
 	})
 	t.Run("sigsegv", func(t *testing.T) {
