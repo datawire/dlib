@@ -42,6 +42,23 @@ func TestPanicToError(t *testing.T) {
 		if strings.Count(v, "PANIC") != 1 {
 			t.Errorf("error: %s looks like it nested wrong: %q", k, v)
 		}
+		if strings.Contains(v, ".go") {
+			t.Errorf("error: %s looks it includes a stack trace: %q", k, v)
+		}
+		////////////////////////////////////////////////////////////////
+		k = "fmt.Sprintf(\"%s\", err)"
+		v = fmt.Sprintf("%s", err)
+		t.Logf("debug: %s: %q", k, v)
+		if !strings.HasPrefix(v, "PANIC: ") {
+			t.Errorf("error: %s doesn't look like a panic: %q", k, v)
+		}
+		if strings.Count(v, "PANIC") != 1 {
+			t.Errorf("error: %s looks like it nested wrong: %q", k, v)
+		}
+		if strings.Contains(v, ".go") {
+			t.Errorf("error: %s looks it includes a stack trace: %q", k, v)
+		}
+		str := v
 		////////////////////////////////////////////////////////////////
 		k = "fmt.Sprintf(\"%q\", err)"
 		v = fmt.Sprintf("%q", err)
@@ -51,8 +68,14 @@ func TestPanicToError(t *testing.T) {
 		} else if !strings.HasPrefix(v, "\"PANIC: ") {
 			t.Errorf("error: %s doesn't look like a panic: %q", k, v)
 		}
+		if v != fmt.Sprintf("%q", str) {
+			t.Errorf("error: %s doesn't match fmt.Sprintf(\"%%s\", err):\n\t%%q: %q\n\t%%s: %s", k, v, str)
+		}
 		if strings.Count(v, "PANIC") != 1 {
 			t.Errorf("error: %s looks like it nested wrong: %q", k, v)
+		}
+		if strings.Contains(v, ".go") {
+			t.Errorf("error: %s looks it includes a stack trace: %q", k, v)
 		}
 		////////////////////////////////////////////////////////////////
 		k = "fmt.Sprintf(\"%v\", err)"
@@ -63,6 +86,9 @@ func TestPanicToError(t *testing.T) {
 		}
 		if strings.Count(v, "PANIC") != 1 {
 			t.Errorf("error: %s looks like it nested wrong: %q", k, v)
+		}
+		if strings.Contains(v, ".go") {
+			t.Errorf("error: %s looks it includes a stack trace: %q", k, v)
 		}
 		////////////////////////////////////////////////////////////////
 		k = "fmt.Sprintf(\"%+v\", err)"
@@ -113,5 +139,20 @@ func TestPanicToError(t *testing.T) {
 		}()
 		var str *string
 		fmt.Println(*str) //nolint:govet // this will panic
+	})
+	t.Run("panic-recover-panic", func(t *testing.T) {
+		var a, b error
+		defer func() {
+			b = derror.PanicToError(recover())
+			checkErr(t, b)
+			if a != b {
+				t.Errorf("error: error was wrapped extra times")
+			}
+		}()
+		defer func() {
+			a = derror.PanicToError(recover())
+			panic(a)
+		}()
+		panic("root")
 	})
 }
