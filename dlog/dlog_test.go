@@ -120,6 +120,38 @@ func TestHelperProcess(t *testing.T) {
 	doLog(ctx)
 }
 
+func TestInvalidLogLevel(t *testing.T) {
+	t.Parallel()
+	invalidLevel := dlog.LogLevel(999)
+	logFuncs := map[string]func(ctx context.Context){
+		"Log": func(ctx context.Context) {
+			dlog.Log(ctx, invalidLevel, "Should not log")
+		},
+		"Logf": func(ctx context.Context) {
+			dlog.Logf(ctx, invalidLevel, "Should %s", "not log")
+		},
+		"Logln": func(ctx context.Context) {
+			dlog.Logln(ctx, invalidLevel, "Should", "not", "log")
+		},
+	}
+	for logName, buildLog := range testLoggers {
+		t.Run(logName, func(t *testing.T) {
+			for funcName, logFunc := range logFuncs {
+				t.Run(funcName, func(t *testing.T) {
+					defer func() {
+						x := recover()
+						if x == nil {
+							t.Errorf("Invalid log level did not panic")
+						}
+					}()
+					ctx := buildLog(t)
+					logFunc(ctx)
+				})
+			}
+		})
+	}
+}
+
 type testLogEntry struct {
 	level   dlog.LogLevel
 	fields  map[string]interface{}
@@ -150,7 +182,19 @@ func (l testLogger) WithField(key string, value interface{}) dlog.Logger {
 func (l testLogger) StdLogger(dlog.LogLevel) *log.Logger {
 	panic("not implemented")
 }
-func (l testLogger) Log(lvl dlog.LogLevel, msg string) {
+
+func (l testLogger) Logln(level dlog.LogLevel, args ...interface{}) {
+	msg := fmt.Sprintln(args...)
+	msg = msg[:len(msg)-1]
+	l.Log(level, msg)
+}
+
+func (l testLogger) Logf(level dlog.LogLevel, format string, args ...interface{}) {
+	l.Log(level, fmt.Sprintf(format, args...))
+}
+
+func (l testLogger) Log(lvl dlog.LogLevel, args ...interface{}) {
+	msg := fmt.Sprint(args...)
 	entry := testLogEntry{
 		level:   lvl,
 		message: msg,
