@@ -3,6 +3,7 @@ package dtime
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"testing"
 	"time"
 
@@ -57,8 +58,15 @@ func TestSleep(t *testing.T) {
 			start := time.Now()
 			SleepWithContext(ctx, tcinfo.Arg)
 			actual := time.Since(start)
-			assertDurationEq(t, tcinfo.Expected, actual,
-				time.Second/100)
+
+			slop := 10 * time.Millisecond
+			switch  runtime.GOOS {
+			case "darwin":
+				slop *= 15 // Perhaps just CircleCI being bad, not darwin in general?
+			case "windows" :
+				slop *= 10 // Be forgiving of running in a VM
+			}
+			assertDurationEq(t, tcinfo.Expected, actual, slop)
 		})
 	}
 }

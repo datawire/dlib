@@ -49,8 +49,13 @@ import (
 	"os/exec"
 	"sync"
 
+	// Specifically use github.com/pkg/errors instead of stdlib "errors" because the situations
+	// we'll use it are situations where stacktraces will be useful.
+	"github.com/pkg/errors"
+
 	"github.com/datawire/dlib/dcontext"
 	"github.com/datawire/dlib/dlog"
+	"github.com/datawire/dlib/internal/sigint"
 )
 
 // Error is returned by LookPath when it fails to classify a file as an
@@ -143,7 +148,18 @@ func (c *Cmd) logiofn(stream string) func(error, []byte) {
 // Start starts the specified command but does not wait for it to complete.
 //
 // See the os/exec.Cmd.Start documenaton for more information.
+//
+// BUG(lukeshu) On GOOS=windows, it is an error to use a dcontext soft Context without also setting
+// Cmd.SysProcAttr.CreationFlags |= syscall.CREATE_NEW_PROCESS_GROUP.  This is because on Windows it
+// is not possible to send the appropriate signal for graceful shutdown to just one process, it must
+// be sent to the entire process group, which would involve sending it to ourselves.  You must make
+// the appropriate decision for your application whether to disable soft cancellation or whether to
+// put the child process in its own process group.
 func (c *Cmd) Start() error {
+	if c.ctx != dcontext.HardContext(c.ctx) && !c.canInterrupt() {
+		return errors.New("dexec.Cmd.Start: on GOOS=windows it is an error to use soft cancellation without CREATE_NEW_PROCESS_GROUP")
+	}
+
 	c.Stdin = fixupReader(c.Stdin, c.logiofn("stdin"))
 	if interfaceEqual(c.Stdout, c.Stderr) {
 		c.Stdout = fixupWriter(c.Stdout, c.logiofn("stdout+stderr"))
@@ -194,7 +210,7 @@ func (c *Cmd) Start() error {
 						if !c.DisableLogging {
 							dlog.Print(c.ctx, "sending SIGINT")
 						}
-						_ = c.Cmd.Process.Signal(os.Interrupt)
+						_ = sigint.SendInterrupt(c.Cmd.Process)
 					}
 				case <-c.waitDone:
 					// it exited on its own

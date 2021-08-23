@@ -10,6 +10,7 @@ import (
 	"github.com/datawire/dlib/dcontext"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
+	"github.com/datawire/dlib/internal/sigint"
 )
 
 func baseContext() context.Context {
@@ -58,6 +59,10 @@ func ExampleParentGroup() {
 // This example shows the signal handler triggering a soft shutdown
 // when the user hits Ctrl-C, and what the related logging looks like.
 func Example_signalHandling1() {
+	if !ensureProcessGroup() {
+		// Needed for signal handling in tests on Windows.
+		return
+	}
 	exEvents := make(chan struct{})
 	go func() {
 		// This goroutine isn't "part of" the example, but
@@ -71,7 +76,7 @@ func Example_signalHandling1() {
 		// that a signal was received, and trigger a
 		// graceful-shutdown, logging that it's triggered
 		// because of a signal.
-		self.Signal(os.Interrupt)
+		_ = sigint.SendInterrupt(self)
 
 		// The worker goroutine will then respond to the
 		// graceful-shutdown, and Wait() will then log each of
@@ -112,6 +117,10 @@ func Example_signalHandling1() {
 // poorly behaved, and doesn't quit during soft-shutdown when the user
 // hits Ctrl-C, but does handle hard-shutdown.
 func Example_signalHandling2() {
+	if !ensureProcessGroup() {
+		// Needed for signal handling in tests on Windows.
+		return
+	}
 	exEvents := make(chan struct{})
 	go func() {
 		// This goroutine isn't "part of" the example, but
@@ -126,7 +135,7 @@ func Example_signalHandling2() {
 		// graceful-shutdown, logging that it's triggered
 		// because of a signal.  However, the worker goroutine
 		// will ignore it and keep running.
-		self.Signal(os.Interrupt)
+		_ = sigint.SendInterrupt(self)
 
 		// wait for the soft-shutdown to be triggered
 		<-exEvents
@@ -139,7 +148,7 @@ func Example_signalHandling2() {
 		// shutdown might be going wrong, it will log each of
 		// the goroutines' statuses, so you can see which task
 		// is hanging.
-		self.Signal(os.Interrupt)
+		_ = sigint.SendInterrupt(self)
 
 		// The worker goroutine will then respond to the
 		// not-so-graceful-shutdown, and Wait() will then log
@@ -292,6 +301,10 @@ created by github.com/datawire/dlib/dgroup.(*Group).Wait
 // This example shows how the signal handler behaves when a worker is
 // poorly behaved, and doesn't quit at all.
 func Example_signalHandling3() {
+	if !ensureProcessGroup() {
+		// Needed for signal handling in tests on Windows.
+		return
+	}
 	exEvents := make(chan struct{})
 	exFinished := make(chan struct{})
 	go func() {
@@ -307,7 +320,7 @@ func Example_signalHandling3() {
 		// graceful-shutdown, logging that it's triggered
 		// because of a signal.  However, the worker goroutine
 		// will ignore it and keep running.
-		self.Signal(os.Interrupt)
+		_ = sigint.SendInterrupt(self)
 
 		// wait for the soft-shutdown to be triggered
 		<-exEvents
@@ -321,7 +334,7 @@ func Example_signalHandling3() {
 		// the goroutines' statuses, so you can see which task
 		// is hanging.  However, the worker goroutine will
 		// ignore it and keep running.
-		self.Signal(os.Interrupt)
+		_ = sigint.SendInterrupt(self)
 
 		// wait for the hard-shutdown to be triggered
 		<-exEvents
@@ -335,7 +348,7 @@ func Example_signalHandling3() {
 		// which task is hanging, but it will also log a
 		// stacktraces of each goroutine.  However, the worker
 		// goroutine will ignore it and keep running.
-		self.Signal(os.Interrupt)
+		_ = sigint.SendInterrupt(self)
 
 		// Because the worker goroutine is hanging, and not
 		// responding to our shutdown signals, we've set a

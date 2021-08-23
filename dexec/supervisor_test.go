@@ -2,9 +2,13 @@ package dexec_test
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -13,7 +17,9 @@ import (
 )
 
 func TestMustCapture(t *testing.T) {
-	result, err := exec.CommandContext(dlog.NewTestContext(t, true), "echo", "this", "is", "a", "test").Output()
+	cmd := exec.CommandContext(dlog.NewTestContext(t, true), os.Args[0], "-test.run=TestHelperProcess", "--", "echo", "this", "is", "a", "test")
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	result, err := cmd.Output()
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -37,7 +43,8 @@ func TestCaptureExitError(t *testing.T) {
 }
 
 func TestCaptureInput(t *testing.T) {
-	cmd := exec.CommandContext(dlog.NewTestContext(t, true), "cat")
+	cmd := exec.CommandContext(dlog.NewTestContext(t, true), os.Args[0], "-test.run=TestHelperProcess", "--", "cat")
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	cmd.Stdin = strings.NewReader("hello")
 	output, err := cmd.Output()
 	if err != nil {
@@ -49,7 +56,7 @@ func TestCaptureInput(t *testing.T) {
 }
 
 func TestCommandRun(t *testing.T) {
-	err := exec.CommandContext(dlog.NewTestContext(t, true), "ls").Run()
+	err := exec.CommandContext(dlog.NewTestContext(t, true), "go", "version").Run()
 	if err != nil {
 		t.Errorf("unexpted error: %v", err)
 	}
@@ -68,17 +75,25 @@ func TestCommandRunLogging(t *testing.T) {
 			Level: logrus.DebugLevel,
 		}))
 
+	// Run the equivalent of
+	//
+	//     cmd := exec.CommandContext(ctx, "bash", "-c", "cat; for i in $(seq 1 3); do echo $i; sleep 0.2; done")
+	//
 	// The "cat" in the command is important, otherwise the
 	// ordering of the "stdin < EOF" and the "stdout+stderr > 1"
 	// lines could go either way.
-	cmd := exec.CommandContext(ctx, "bash", "-c", "cat; for i in $(seq 1 3); do echo $i; sleep 0.2; done")
+	//
+	// I say "equivalent of", because we're doing this with Go, because not all platforms have
+	// Bash.
+	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=TestCommandRunLoggingHelperProcess")
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	if err := cmd.Run(); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
 	//nolint:lll
 	expectedLines := []string{
-		`level=info dexec.pid=XXPIDXX msg="started command [\"bash\" \"-c\" \"cat; for i in $(seq 1 3); do echo $i; sleep 0.2; done\"]"`,
+		`level=info dexec.pid=XXPIDXX msg="started command [`+quote15(os.Args[0])+` \"-test.run=TestCommandRunLoggingHelperProcess\"]"`,
 		`level=info dexec.pid=XXPIDXX dexec.stream=stdin dexec.err=EOF`,
 		`level=info dexec.pid=XXPIDXX dexec.stream=stdout+stderr dexec.data="1\n"`,
 		`level=info dexec.pid=XXPIDXX dexec.stream=stdout+stderr dexec.data="2\n"`,
@@ -108,5 +123,23 @@ func TestCommandRunLogging(t *testing.T) {
 				"received: %q\n",
 				i, expectedLine, receivedLine)
 		}
+	}
+}
+
+func TestCommandRunLoggingHelperProcess(*testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "1" {
+		return
+	}
+	defer os.Exit(0)
+
+	// This just replaces {"bash", "-c", "cat; for i in $(seq 1 3); do echo $i; sleep 0.2; done"}
+	// because not all platforms have Bash.
+
+	if _, err := io.Copy(os.Stdout, os.Stdin); err != nil {
+		fmt.Println("oops", err)
+	}
+	for i := 1; i <= 3; i++ {
+		fmt.Println(i)
+		time.Sleep(200 * time.Millisecond)
 	}
 }

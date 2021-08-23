@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"syscall"
 	"testing"
@@ -37,6 +38,17 @@ func (b *lineBuffer) Write(p []byte) (int, error) {
 	return n, nil
 }
 
+var errKilled = "signal: killed"
+
+func init() {
+	if runtime.GOOS == "windows" {
+		errKilled = "exit status 1"
+	}
+}
+
+// newInterruptableSysProcAttr gets overridden in hardsoft_windows_test.go
+var newInterruptableSysProcAttr = func() *syscall.SysProcAttr { return nil }
+
 func TestSoftCancel(t *testing.T) {
 	log := &strings.Builder{}
 	ctx := newCapturingContext(t, log)
@@ -49,6 +61,7 @@ func TestSoftCancel(t *testing.T) {
 		lines: make(chan string, 50),
 	}
 	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestSoftHelperProcess")
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	cmd.Stdout = output
 	if err := cmd.Start(); err != nil {
@@ -77,20 +90,46 @@ func TestSoftCancel(t *testing.T) {
 	if _, ok := err.(*dexec.ExitError); !ok {
 		t.Errorf("error is of the wrong type: %[1]T(%[1]v)", err)
 	}
-	if err.Error() != "signal: killed" {
+	if err.Error() != errKilled {
 		t.Errorf("unexpected error value: %v", err)
 	}
 
 	assert.Equal(t, fmt.Sprintf(``+
-		`level=info msg="started command [\"%[1]s\" \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info msg="started command [%[1]s \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
 		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
 		`level=info dexec.data="started\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
 		`level=info msg="sending SIGINT"`+"\n"+
 		`level=info dexec.data="caught signal: interrupt\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
 		`level=info msg="sending SIGKILL"`+"\n"+
-		`level=info msg="finished with error: signal: killed" dexec.pid=%[2]d`+"\n"+
-		``, os.Args[0], cmd.ProcessState.Pid()),
+		`level=info msg="finished with error: `+errKilled+`" dexec.pid=%[2]d`+"\n"+
+		``, quote15(os.Args[0]), cmd.ProcessState.Pid()),
 		log.String())
+}
+
+func TestSoftCancelUnsupported(t *testing.T) {
+	ctx := dcontext.WithSoftness(context.Background())
+
+	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestHelperProcess", "--", "echo", "foo")
+	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	err := cmd.Start()
+	switch runtime.GOOS {
+	case "windows":
+		if err == nil {
+			t.Error("expected an error from cmd.Start() but did not get one")
+		} else if err.Error() != "dexec.Cmd.Start: on GOOS=windows it is an error to use soft cancellation without CREATE_NEW_PROCESS_GROUP" {
+			t.Errorf("unexpected error value: %v", err)
+		}
+	default:
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err == nil {
+		if err := cmd.Wait(); err != nil {
+			t.Fatal(err)
+		}
+	}
 }
 
 func TestHardCancel(t *testing.T) {
@@ -104,6 +143,7 @@ func TestHardCancel(t *testing.T) {
 		lines: make(chan string, 50),
 	}
 	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestSoftHelperProcess")
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	cmd.Stdout = output
 	if err := cmd.Start(); err != nil {
@@ -125,17 +165,17 @@ func TestHardCancel(t *testing.T) {
 	if _, ok := err.(*dexec.ExitError); !ok {
 		t.Errorf("error is of the wrong type: %[1]T(%[1]v)", err)
 	}
-	if err.Error() != "signal: killed" {
+	if err.Error() != errKilled {
 		t.Errorf("unexpected error value: %v", err)
 	}
 
 	assert.Equal(t, fmt.Sprintf(``+
-		`level=info msg="started command [\"%[1]s\" \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info msg="started command [%[1]s \"-test.run=TestSoftHelperProcess\"]" dexec.pid=%[2]d`+"\n"+
 		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
 		`level=info dexec.data="started\n" dexec.pid=%[2]d dexec.stream=stdout`+"\n"+
 		`level=info msg="sending SIGKILL"`+"\n"+
-		`level=info msg="finished with error: signal: killed" dexec.pid=%[2]d`+"\n"+
-		``, os.Args[0], cmd.ProcessState.Pid()),
+		`level=info msg="finished with error: `+errKilled+`" dexec.pid=%[2]d`+"\n"+
+		``, quote15(os.Args[0]), cmd.ProcessState.Pid()),
 		log.String())
 }
 
@@ -165,11 +205,16 @@ func TestSoftCancelCantStart(t *testing.T) {
 	defer softCancel()
 
 	cmd := dexec.CommandContext(ctx, "/")
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	err := cmd.Start()
 	if err == nil {
 		t.Fatal("expected to get an error from Start()")
 	}
-	if err.Error() != `exec: "/": permission denied` {
+	expErr := "permission denied"
+	if runtime.GOOS == "windows" {
+		expErr = "file does not exist"
+	}
+	if err.Error() != `exec: "/": `+expErr {
 		t.Errorf("unexpected error value: %v", err)
 	}
 
@@ -195,6 +240,7 @@ func TestSoftCancelDeadContext(t *testing.T) {
 	softCancel()
 
 	cmd := dexec.CommandContext(ctx, os.Args[0])
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	err := cmd.Start()
 	if err == nil {
 		t.Fatal("expected to get an error from Start()")
@@ -212,16 +258,17 @@ func TestSoftCancelSelfExit(t *testing.T) {
 	ctx = dcontext.WithSoftness(ctx)
 
 	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestHelperProcess", "--", "echo", "foo")
+	cmd.SysProcAttr = newInterruptableSysProcAttr()
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, fmt.Sprintf(``+
-		`level=info msg="started command [\"%[1]s\" \"-test.run=TestHelperProcess\" \"--\" \"echo\" \"foo\"]" dexec.pid=%[2]d`+"\n"+
+		`level=info msg="started command [%[1]s \"-test.run=TestHelperProcess\" \"--\" \"echo\" \"foo\"]" dexec.pid=%[2]d`+"\n"+
 		`level=info dexec.err=EOF dexec.pid=%[2]d dexec.stream=stdin`+"\n"+
 		`level=info dexec.data="foo\n" dexec.pid=%[2]d dexec.stream=stdout+stderr`+"\n"+
 		`level=info msg="finished successfully: exit status 0" dexec.pid=%[2]d`+"\n"+
-		``, os.Args[0], cmd.ProcessState.Pid()),
+		``, quote15(os.Args[0]), cmd.ProcessState.Pid()),
 		log.String())
 }

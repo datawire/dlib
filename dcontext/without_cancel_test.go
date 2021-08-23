@@ -2,6 +2,7 @@ package dcontext_test
 
 import (
 	"context"
+	"runtime"
 	"testing"
 	"time"
 
@@ -31,7 +32,14 @@ func TestWithoutCancel(t *testing.T) {
 	// sanity check
 	deadline, ok := ctx.Deadline()
 	assert.True(t, ok)
-	assert.True(t, deadline.Before(time.Now()))
+	switch runtime.GOOS {
+	case "windows":
+		// The Windows clock has low resolution, we might get the same
+		// time again.
+		assert.True(t, !deadline.After(time.Now()))
+	default:
+		assert.True(t, deadline.Before(time.Now()))
+	}
 	assert.True(t, isClosed(ctx.Done()))
 	assert.Error(t, ctx.Err())
 	assert.Equal(t, "foo", ctx.Value(ctxKey{}))
