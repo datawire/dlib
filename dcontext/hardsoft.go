@@ -108,18 +108,21 @@ import (
 	"time"
 )
 
-type parentHardContextKey struct{}
+type parentHardContextKey struct {
+	depth int
+}
 
-// softCtx{base} is just context.WithValue(base, parentHardContextKey{}, base),
-// but with a friendlier 'String()' method.
 type softCtx struct {
 	context.Context
 }
 
 func (c softCtx) String() string { return contextName(c.Context) + ".WithSoftness" }
 func (c softCtx) Value(key interface{}) interface{} {
-	if key == (parentHardContextKey{}) {
-		return c.Context
+	if parentKey, ok := key.(parentHardContextKey); ok {
+		if parentKey.depth == 0 {
+			return c.Context
+		}
+		key = parentHardContextKey{parentKey.depth - 1}
 	}
 	return c.Context.Value(key)
 }
@@ -141,8 +144,13 @@ type childHardContext struct {
 func (c childHardContext) Deadline() (deadline time.Time, ok bool) { return c.hardCtx.Deadline() }
 func (c childHardContext) Done() <-chan struct{}                   { return c.hardCtx.Done() }
 func (c childHardContext) Err() error                              { return c.hardCtx.Err() }
-func (c childHardContext) Value(key interface{}) interface{}       { return c.softCtx.Value(key) }
 func (c childHardContext) String() string                          { return contextName(c.softCtx) + ".HardContext" }
+func (c childHardContext) Value(key interface{}) interface{} {
+	if parentKey, ok := key.(parentHardContextKey); ok {
+		key = parentHardContextKey{parentKey.depth + 1}
+	}
+	return c.softCtx.Value(key)
+}
 
 // HardContext takes a child Context that is canceled sooner (a "soft"
 // cancellation) and returns a Context with the same values, but with the
