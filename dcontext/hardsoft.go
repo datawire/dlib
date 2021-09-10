@@ -143,6 +143,10 @@ func HardContext(softCtx context.Context) context.Context {
 	if parentHardCtx == nil {
 		return softCtx
 	}
+	// If it's already a hard context, just return it as is.
+	if hardCtx, ok := softCtx.(childHardContext); ok {
+		return hardCtx
+	}
 	return childHardContext{
 		hardCtx: parentHardCtx.(context.Context),
 		softCtx: softCtx,
