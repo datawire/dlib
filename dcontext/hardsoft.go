@@ -110,13 +110,27 @@ import (
 
 type parentHardContextKey struct{}
 
+// softCtx{base} is just context.WithValue(base, parentHardContextKey{}, base),
+// but with a friendlier 'String()' method.
+type softCtx struct {
+	context.Context
+}
+
+func (c softCtx) String() string { return contextName(c.Context) + ".WithSoftness" }
+func (c softCtx) Value(key interface{}) interface{} {
+	if key == (parentHardContextKey{}) {
+		return c.Context
+	}
+	return c.Context.Value(key)
+}
+
 // WithSoftness returns a copy of the parent "hard" Context with a way of
 // getting the parent's Done channel.  This allows the child to have an earlier
 // cancellation, triggering a "soft" shutdown, while allowing hard/soft-aware
 // functions to use HardContext() to get the parent's Done channel, for a "hard"
 // shutdown.
-func WithSoftness(hardCtx context.Context) (softCtx context.Context) {
-	return context.WithValue(hardCtx, parentHardContextKey{}, hardCtx)
+func WithSoftness(hardCtx context.Context) (_softCtx context.Context) {
+	return softCtx{hardCtx}
 }
 
 type childHardContext struct {
