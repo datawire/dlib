@@ -92,6 +92,7 @@ borrowed.patch: $(tools/nodelete) FORCE
 	    -e s,^dexec/internal/,internal/, \
 	    -e s,^dexec/,os/exec/, \
 	    -e s,^dcontext/,context/, \
+	    -e s,^dsync/,sync/, \
 	    -e '/^dhttp/{ s,^dhttp/,net/http/internal/,; s,_test,,; }'); \
 	  if grep -q 'MODIFIED: META: .* subset ' "$$copy"; then \
 	    echo "{ diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true; } | $(tools/nodelete)" >&2; \
@@ -109,6 +110,7 @@ check-attribution:
 	    -e s,^dexec/internal/,internal/, \
 	    -e s,^dexec/,os/exec/, \
 	    -e s,^dcontext/,context/, \
+	    -e s,^dsync/,sync/, \
 	    -e '/^dhttp/{ s,^dhttp/,net/http/internal/,; s,_test,,; }'); \
 	  if grep -Fq "Go $(GOVERSION) $$orig" "$$copy" && grep -q 'Copyright .* The Go Authors' "$$copy"; then \
 	    echo "$$copy : Looks OK"; \
