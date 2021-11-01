@@ -11,17 +11,31 @@ help:
 
 .SECONDARY:
 .PHONY: FORCE
-SHELL = bash
+SHELL = bash -o pipefail
 
 #
 # Tools
 
+# shell scripts
+tools/copy-ifchanged = tools/bin/copy-ifchanged
+tools/bin/%: tools/src/%.sh
+	mkdir -p $(@D)
+	install $< $@
+
+# `go get`-able things
 tools/gocovmerge    = tools/bin/gocovmerge
 tools/goimports     = tools/bin/goimports
 tools/golangci-lint = tools/bin/golangci-lint
 tools/goveralls     = tools/bin/goveralls
 tools/bin/%: tools/src/%/pin.go tools/src/%/go.mod
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
+
+# local Go sources
+tools/nodelete = tools/bin/nodelete
+tools/bin/.%.stamp: tools/src/%/main.go FORCE
+	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) .
+tools/bin/%: tools/bin/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
 
 #
 # Test
@@ -30,7 +44,7 @@ dlib.cov: test
 	test -e $@
 	touch $@
 test:
-	go test -count=1 -coverprofile=dlib.cov -coverpkg=./... -race ./...
+	go test -count=1 -coverprofile=dlib.cov -coverpkg=./... -race ${GOTEST_FLAGS} ./...
 .PHONY: test
 
 %.cov.html: %.cov
@@ -70,7 +84,7 @@ GOVERSION ?= 1.15.14
 	    -e 's,.*// MODIFIED: FROM:,,' | \
 	  $(tools/goimports) -local github.com/datawire/dlib \
 	  >$@
-borrowed.patch: FORCE
+borrowed.patch: $(tools/nodelete) FORCE
 	$(MAKE) $(addsuffix .unmod,$(shell git ls-files ':*borrowed_*'))
 	@for copy in $$(git ls-files ':*borrowed_*'); do \
 	  orig=$$(sed <<<"$$copy" \
@@ -80,10 +94,10 @@ borrowed.patch: FORCE
 	    -e s,^dcontext/,context/, \
 	    -e '/^dhttp/{ s,^dhttp/,net/http/internal/,; s,_test,,; }'); \
 	  if grep -q 'MODIFIED: META: .* subset ' "$$copy"; then \
-	    echo "diff -uw $(GOHOME)/src/$$orig $$copy.unmod | sed '3,\$${ /^-/d; }'" >&2; \
-	          diff -uw $(GOHOME)/src/$$orig $$copy.unmod | sed '3,$${ /^-/d; }' || true; \
+	    echo "{ diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true; } | $(tools/nodelete)" >&2; \
+	          { diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true; } | $(tools/nodelete); \
 	  else \
-	    echo "diff -uw $(GOHOME)/src/$$orig $$copy.unmod" >&2; \
+	    echo "diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true" >&2; \
 	          diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true; \
 	  fi; \
 	done > $@

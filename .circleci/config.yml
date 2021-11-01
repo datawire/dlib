@@ -83,7 +83,12 @@ jobs:
     steps:
     - install-go
     - checkout
-    - run: "eval $(grep 'go test' Makefile)"
+    - run:
+        name: make test
+        command: |
+          GOTEST_FLAGS=-vet=off # https://github.com/golang/go/issues/27089#issuecomment-933016414
+          set -x
+          eval "$(grep 'go test' Makefile)"
     - save-coverage
 
   "test":
