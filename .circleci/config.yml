@@ -98,9 +98,9 @@ jobs:
         name: "Generate code-coverage report"
         command: |
           set -e
-          make .circleci/gocovmerge .circleci/goveralls
-          .circleci/gocovmerge /tmp/workspace/*.cov > dlib.cov
-          .circleci/goveralls -coverprofile=dlib.cov -service=circle-ci -repotoken=$COVERALLS_TOKEN
+          make tools/bin/gocovmerge tools/bin/goveralls
+          tools/bin/gocovmerge /tmp/workspace/*.cov > dlib.cov
+          tools/bin/goveralls -coverprofile=dlib.cov -service=circle-ci -repotoken=$COVERALLS_TOKEN
 
   "lint":
     docker:

@@ -14,6 +14,16 @@ help:
 SHELL = bash
 
 #
+# Tools
+
+tools/gocovmerge    = tools/bin/gocovmerge
+tools/goimports     = tools/bin/goimports
+tools/golangci-lint = tools/bin/golangci-lint
+tools/goveralls     = tools/bin/goveralls
+tools/bin/%: tools/src/%/pin.go tools/src/%/go.mod
+	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
+
+#
 # Test
 
 dlib.cov: test
@@ -40,17 +50,11 @@ generate:
 #
 # Lint
 
-lint: .circleci/golangci-lint
-	GOOS=linux   .circleci/golangci-lint run ./...
-	GOOS=darwin  .circleci/golangci-lint run ./...
-	GOOS=windows .circleci/golangci-lint run ./...
+lint: $(tools/golangci-lint)
+	GOOS=linux   $(tools/golangci-lint) run ./...
+	GOOS=darwin  $(tools/golangci-lint) run ./...
+	GOOS=windows $(tools/golangci-lint) run ./...
 .PHONY: lint
-
-#
-# Tools
-
-.circleci/%: .circleci/%.d/go.mod .circleci/%.d/pin.go
-	cd $(<D) && go build -o ../$(@F) $$(sed -En 's,^import "(.*)"$$,\1,p' pin.go)
 
 #
 # Utilities for working with borrowed code
@@ -58,13 +62,13 @@ lint: .circleci/golangci-lint
 GOHOME ?= $(HOME)/src/github.com/golang/go
 GOVERSION ?= 1.15.14
 
-%.unmod: % .circleci/goimports FORCE
+%.unmod: % $(tools/goimports) FORCE
 	<$< \
 	  sed \
 	    -e '/MODIFIED: META:/d' \
 	    -e '/MODIFIED: ADDED/d' \
 	    -e 's,.*// MODIFIED: FROM:,,' | \
-	  .circleci/goimports -local github.com/datawire/dlib \
+	  $(tools/goimports) -local github.com/datawire/dlib \
 	  >$@
 borrowed.patch: FORCE
 	$(MAKE) $(addsuffix .unmod,$(shell git ls-files ':*borrowed_*'))
