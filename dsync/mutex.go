@@ -37,40 +37,40 @@
 // they are garbage.  That's OK, even "garbage measurements" is good enough to show you "order of
 // magnitude difference".
 //
-//  |                             |       <r> |         <r> |                                     |       <r> |           <r> |      <r> |
-//  | sync test                   |  sync cnt |   sync rate | dsync test                          | dsync cnt |    dsync rate | slowdown |
-//  |-----------------------------+-----------+-------------+-------------------------------------+-----------+---------------+----------|
-//  | goos: linux                 |           |             | goos: linux                         |           |               |          |
-//  | goarch: amd64               |           |             | goarch: amd64                       |           |               |          |
-//  | pkg: sync                   |           |             | pkg: github.com/datawire/dlib/dsync |           |               |          |
-//  | BenchmarkCond1              |           |             | BenchmarkCond1                      |           |               |          |
-//  | BenchmarkCond1-4            |   4008776 |   287 ns/op | BenchmarkCond1-4                    |    702122 |    1636 ns/op |     570% |
-//  | BenchmarkCond2              |           |             | BenchmarkCond2                      |           |               |          |
-//  | BenchmarkCond2-4            |   1367472 |   886 ns/op | BenchmarkCond2-4                    |    313716 |    3253 ns/op |     367% |
-//  | BenchmarkCond4              |           |             | BenchmarkCond4                      |           |               |          |
-//  | BenchmarkCond4-4            |    616113 |  1926 ns/op | BenchmarkCond4-4                    |    209254 |    6430 ns/op |     333% |
-//  | BenchmarkCond8              |           |             | BenchmarkCond8                      |           |               |          |
-//  | BenchmarkCond8-4            |    434738 |  2709 ns/op | BenchmarkCond8-4                    |     70065 |   14720 ns/op |     543% |
-//  | BenchmarkCond16             |           |             | BenchmarkCond16                     |           |               |          |
-//  | BenchmarkCond16-4           |    241214 |  4934 ns/op | BenchmarkCond16-4                   |     13461 |   91578 ns/op |   1,856% |
-//  | BenchmarkCond32             |           |             | BenchmarkCond32                     |           |               |          |
-//  | BenchmarkCond32-4           |    104055 | 10464 ns/op | BenchmarkCond32-4                   |      1280 | 1032153 ns/op |   9,863% |
-//  | BenchmarkMutexUncontended   |           |             | BenchmarkMutexUncontended           |           |               |          |
-//  | BenchmarkMutexUncontended-4 | 142903719 |  8.44 ns/op | BenchmarkMutexUncontended-4         |   7308866 |     145 ns/op |   1,718% |
-//  | BenchmarkMutex              |           |             | BenchmarkMutex                      |           |               |          |
-//  | BenchmarkMutex-4            |  16354251 |  78.8 ns/op | BenchmarkMutex-4                    |    803186 |    2204 ns/op |   2,796% |
-//  | BenchmarkMutexSlack         |           |             | BenchmarkMutexSlack                 |           |               |          |
-//  | BenchmarkMutexSlack-4       |   8745819 |   154 ns/op | BenchmarkMutexSlack-4               |     10000 |  140796 ns/op |  91,425% |
-//  | BenchmarkMutexWork          |           |             | BenchmarkMutexWork                  |           |               |          |
-//  | BenchmarkMutexWork-4        |  12567664 |   101 ns/op | BenchmarkMutexWork-4                |   1085060 |    1131 ns/op |   1,119% |
-//  | BenchmarkMutexWorkSlack     |           |             | BenchmarkMutexWorkSlack             |           |               |          |
-//  | BenchmarkMutexWorkSlack-4   |   9121546 |   149 ns/op | BenchmarkMutexWorkSlack-4           |      7290 |  150538 ns/op | 101,032% |
-//  | BenchmarkMutexNoSpin        |           |             | BenchmarkMutexNoSpin                |           |               |          |
-//  | BenchmarkMutexNoSpin-4      |   1626068 |   748 ns/op | BenchmarkMutexNoSpin-4              |   1000000 |    2194 ns/op |     293% |
-//  | BenchmarkMutexSpin          |           |             | BenchmarkMutexSpin                  |           |               |          |
-//  | BenchmarkMutexSpin-4        |    379140 |  3254 ns/op | BenchmarkMutexSpin-4                |    315388 |    3678 ns/op |     113% |
-//  | PASS                        |           |             | PASS                                |           |               |          |
-//  | ok sync                     |   23.018s |             | ok github.com/datawire/dlib/dsync   |   33.981s |               |          |
+//  |                             |       <r> |         <r> |                                     |       <r> |          <r> |      <r> |
+//  | sync test                   |  sync cnt |   sync rate | dsync test                          | dsync cnt |   dsync rate | slowdown |
+//  |-----------------------------+-----------+-------------+-------------------------------------+-----------+--------------+----------|
+//  | goos: linux                 |           |             | goos: linux                         |           |              |          |
+//  | goarch: amd64               |           |             | goarch: amd64                       |           |              |          |
+//  | pkg: sync                   |           |             | pkg: github.com/datawire/dlib/dsync |           |              |          |
+//  | BenchmarkCond1              |           |             | BenchmarkCond1                      |           |              |          |
+//  | BenchmarkCond1-4            |   4008776 |   287 ns/op | BenchmarkCond1-4                    |   1099570 |   1118 ns/op |     389% |
+//  | BenchmarkCond2              |           |             | BenchmarkCond2                      |           |              |          |
+//  | BenchmarkCond2-4            |   1367472 |   886 ns/op | BenchmarkCond2-4                    |    451890 |   2305 ns/op |     260% |
+//  | BenchmarkCond4              |           |             | BenchmarkCond4                      |           |              |          |
+//  | BenchmarkCond4-4            |    616113 |  1926 ns/op | BenchmarkCond4-4                    |    228304 |   4527 ns/op |     235% |
+//  | BenchmarkCond8              |           |             | BenchmarkCond8                      |           |              |          |
+//  | BenchmarkCond8-4            |    434738 |  2709 ns/op | BenchmarkCond8-4                    |    111482 |  10839 ns/op |     400% |
+//  | BenchmarkCond16             |           |             | BenchmarkCond16                     |           |              |          |
+//  | BenchmarkCond16-4           |    241214 |  4934 ns/op | BenchmarkCond16-4                   |     34845 |  30099 ns/op |     610% |
+//  | BenchmarkCond32             |           |             | BenchmarkCond32                     |           |              |          |
+//  | BenchmarkCond32-4           |    104055 | 10464 ns/op | BenchmarkCond32-4                   |     10000 | 156114 ns/op |   1,491% |
+//  | BenchmarkMutexUncontended   |           |             | BenchmarkMutexUncontended           |           |              |          |
+//  | BenchmarkMutexUncontended-4 | 142903719 |  8.44 ns/op | BenchmarkMutexUncontended-4         |  17757985 |   56.9 ns/op |     674% |
+//  | BenchmarkMutex              |           |             | BenchmarkMutex                      |           |              |          |
+//  | BenchmarkMutex-4            |  16354251 |  78.8 ns/op | BenchmarkMutex-4                    |   3700068 |    314 ns/op |     398% |
+//  | BenchmarkMutexSlack         |           |             | BenchmarkMutexSlack                 |           |              |          |
+//  | BenchmarkMutexSlack-4       |   8745819 |   154 ns/op | BenchmarkMutexSlack-4               |    155089 |  13651 ns/op |   8,864% |
+//  | BenchmarkMutexWork          |           |             | BenchmarkMutexWork                  |           |              |          |
+//  | BenchmarkMutexWork-4        |  12567664 |   101 ns/op | BenchmarkMutexWork-4                |   3282066 |    355 ns/op |     351% |
+//  | BenchmarkMutexWorkSlack     |           |             | BenchmarkMutexWorkSlack             |           |              |          |
+//  | BenchmarkMutexWorkSlack-4   |   9121546 |   149 ns/op | BenchmarkMutexWorkSlack-4           |     83606 |  14905 ns/op |  10,003% |
+//  | BenchmarkMutexNoSpin        |           |             | BenchmarkMutexNoSpin                |           |              |          |
+//  | BenchmarkMutexNoSpin-4      |   1626068 |   748 ns/op | BenchmarkMutexNoSpin-4              |   1401648 |    852 ns/op |     113% |
+//  | BenchmarkMutexSpin          |           |             | BenchmarkMutexSpin                  |           |              |          |
+//  | BenchmarkMutexSpin-4        |    379140 |  3254 ns/op | BenchmarkMutexSpin-4                |    338893 |   3261 ns/op |     100% |
+//  | PASS                        |           |             | PASS                                |           |              |          |
+//  | ok sync                     |   23.018s |             | ok github.com/datawire/dlib/dsync   |   19.514s |              |          |
 //
 // Those measurements are with Go 1.15.2.  I'm actually seeing large dsync speedups with Go 1.17,
 // I'll be excited to see how they compare when we upgrade dlib's reference Go version to Go 1.17.
@@ -101,7 +101,8 @@ type Locker interface {
 //
 // A Mutex must not be copied after first use.
 type Mutex struct {
-	ch unsafe.Pointer // *chan struct{}
+	cur   unsafe.Pointer // *atomicQueueEntry
+	bcast bcaster
 
 	// Similar to stdlib sync.Mutex fairness, we have 2 modes: normal and starvation.
 	//
@@ -143,14 +144,18 @@ func (m *Mutex) Lock(ctx context.Context) error {
 		panic("dsync.Mutex.Lock: mutex was copied after first use")
 	}
 
-	myCh := make(chan struct{})
 	var entry atomicQueueEntry
 	var waitStartTime int64
-
+	var waitCh <-chan struct{}
+	defer func() {
+		if waitCh != nil {
+			m.bcast.Unsubscribe(waitCh)
+		}
+	}()
 	for {
 		if atomic.LoadInt32(&m.starving) == 0 || m.queue.Get() == &entry { // mode==normal || we're-next-in-the-queue
 			// Try to grab the lock.
-			if swapped := atomic.CompareAndSwapPointer(&m.ch, nil, unsafe.Pointer(&myCh)); swapped {
+			if swapped := atomic.CompareAndSwapPointer(&m.cur, nil, unsafe.Pointer(&entry)); swapped {
 				// Yay, we got the lock.
 				itemsStillQueued := m.queue.Remove(&entry)
 				if itemsStillQueued == 0 || waitStartTime == 0 || runtime_nano()-waitStartTime < starvationThresholdNs {
@@ -160,22 +165,19 @@ func (m *Mutex) Lock(ctx context.Context) error {
 			}
 		}
 		// Prepare to wait for the lock to get released.
-		theirCh := (*chan struct{})(atomic.LoadPointer(&m.ch))
 		if waitStartTime == 0 {
 			waitStartTime = runtime_nano()
+			waitCh = m.bcast.Subscribe()
 			m.queue.Add(&entry)
+			continue
 		} else if waitStartTime > starvationThresholdNs {
 			atomic.StoreInt32(&m.starving, 1)
-		}
-		if theirCh == nil {
-			// The lock got released in the time since we tried to get it; try again.
-			continue
 		}
 		// Wait for the lock gets released.
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-(*theirCh):
+		case <-waitCh:
 		}
 	}
 }
@@ -191,10 +193,10 @@ func (m *Mutex) Unlock() {
 		panic("dsync.Mutex.Unlock: mutex was copied after first use")
 	}
 	// unlock it
-	ch := (*chan struct{})(atomic.SwapPointer(&m.ch, nil))
-	if ch == nil {
+	cur := (*chan struct{})(atomic.SwapPointer(&m.cur, nil))
+	if cur == nil {
 		panic("dsync.Mutex.Unlock: not locked")
 	}
 	// wake up listeners
-	close(*ch)
+	m.bcast.Broadcast()
 }

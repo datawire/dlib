@@ -5,6 +5,24 @@ import (
 )
 
 // TODO(lukeshu): Rework atomicQueue to use sync/atomic rather than sync.Mutex.
+//
+// But don't juse use atomic to implement a spin lock, the benchmarks tell me that actually performs
+// much worse:
+//
+//     type spinMutex struct {
+//         v int32
+//     }
+//
+//     func (mu *spinMutex) Lock() {
+//         for !atomic.CompareAndSwapInt32(&mu.v, 0, 1) {
+//         }
+//     }
+//
+//     func (mu *spinMutex) Unlock() {
+//         if !atomic.CompareAndSwapInt32(&mu.v, 1, 0) {
+//             panic("dsync.spinMutex.Unlock: not locked")
+//         }
+//     }
 
 // atomicQueue is a FIFO queue that is thread-safe.
 type atomicQueue struct {
