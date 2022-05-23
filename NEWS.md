@@ -1,3 +1,8 @@
+# v1.3.0 (2022-05-24)
+
+ - Feature: `derror`: Implement a new `type MultiError []error` type
+   for aggregating multiple errors together.
+
 # v1.2.5 (2022-05-24)
 
  - Bugfix: `dlog`: v1.2.4 introduced a regression that broke existing
