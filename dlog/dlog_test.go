@@ -120,6 +120,38 @@ func TestHelperProcess(t *testing.T) {
 	doLog(ctx)
 }
 
+func TestInvalidLogLevel(t *testing.T) {
+	t.Parallel()
+	invalidLevel := dlog.LogLevel(999)
+	logFuncs := map[string]func(ctx context.Context){
+		"Log": func(ctx context.Context) {
+			dlog.Log(ctx, invalidLevel, "Should not log")
+		},
+		"Logf": func(ctx context.Context) {
+			dlog.Logf(ctx, invalidLevel, "Should %s", "not log")
+		},
+		"Logln": func(ctx context.Context) {
+			dlog.Logln(ctx, invalidLevel, "Should", "not", "log")
+		},
+	}
+	for logName, buildLog := range testLoggers {
+		t.Run(logName, func(t *testing.T) {
+			for funcName, logFunc := range logFuncs {
+				t.Run(funcName, func(t *testing.T) {
+					defer func() {
+						x := recover()
+						if x == nil {
+							t.Errorf("Invalid log level did not panic")
+						}
+					}()
+					ctx := buildLog(t)
+					logFunc(ctx)
+				})
+			}
+		})
+	}
+}
+
 type testLogEntry struct {
 	level   dlog.LogLevel
 	fields  map[string]interface{}

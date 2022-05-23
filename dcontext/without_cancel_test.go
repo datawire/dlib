@@ -2,6 +2,7 @@ package dcontext_test
 
 import (
 	"context"
+	"runtime"
 	"testing"
 	"time"
 
@@ -10,15 +11,16 @@ import (
 	"github.com/datawire/dlib/dcontext"
 )
 
-func TestWithoutCancel(t *testing.T) {
-	isClosed := func(ch <-chan struct{}) bool {
-		select {
-		case <-ch:
-			return true
-		default:
-			return false
-		}
+func isClosed(ch <-chan struct{}) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+		return false
 	}
+}
+
+func TestWithoutCancel(t *testing.T) {
 	type ctxKey struct{}
 
 	ctx := context.Background()
@@ -30,7 +32,14 @@ func TestWithoutCancel(t *testing.T) {
 	// sanity check
 	deadline, ok := ctx.Deadline()
 	assert.True(t, ok)
-	assert.True(t, deadline.Before(time.Now()))
+	switch runtime.GOOS {
+	case "windows":
+		// The Windows clock has low resolution, we might get the same
+		// time again.
+		assert.True(t, !deadline.After(time.Now()))
+	default:
+		assert.True(t, deadline.Before(time.Now()))
+	}
 	assert.True(t, isClosed(ctx.Done()))
 	assert.Error(t, ctx.Err())
 	assert.Equal(t, "foo", ctx.Value(ctxKey{}))
@@ -44,4 +53,24 @@ func TestWithoutCancel(t *testing.T) {
 	assert.False(t, isClosed(ctx.Done()))
 	assert.NoError(t, ctx.Err())
 	assert.Equal(t, "foo", ctx.Value(ctxKey{}))
+}
+
+func TestNoSoftCancel(t *testing.T) {
+	hardCtx, hardCancel := context.WithCancel(context.Background())
+	softCtx, softCancel := context.WithCancel(dcontext.WithSoftness(hardCtx))
+	noCancelCtx := dcontext.WithoutCancel(softCtx)
+
+	// 0
+	assert.NoError(t, noCancelCtx.Err())
+	assert.NoError(t, dcontext.HardContext(noCancelCtx).Err())
+
+	// 1
+	softCancel()
+	assert.NoError(t, noCancelCtx.Err())
+	assert.NoError(t, dcontext.HardContext(noCancelCtx).Err())
+
+	// 2
+	hardCancel()
+	assert.NoError(t, noCancelCtx.Err())
+	assert.NoError(t, dcontext.HardContext(noCancelCtx).Err())
 }

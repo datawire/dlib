@@ -2,11 +2,10 @@ package dcontext_test
 
 import (
 	"context"
-	"net"
-	"net/http"
 	"time"
 
 	"github.com/datawire/dlib/dcontext"
+	"github.com/datawire/dlib/dhttp"
 )
 
 // This should be a very simple example of a parent caller function, showing how
@@ -19,9 +18,10 @@ func Example_caller() error {
 
 	retCh := make(chan error)
 	go func() {
-		retCh <- ListenAndServeHTTPWithContext(ctx, &http.Server{
+		sc := &dhttp.ServerConfig{
 			// ...
-		})
+		}
+		retCh <- sc.ListenAndServe(ctx, ":http")
 	}()
 
 	// Run for a while.
@@ -42,69 +42,5 @@ func Example_caller() error {
 		// for those clients.
 		timeToDie() // Hard shutdown; cause errors for clients
 		return <-retCh
-	}
-}
-
-// ListenAndServeHTTPWithContext runs server.ListenAndServe() on an http.Server,
-// but properly calls server.Shutdown when the Context is canceled.
-//
-// It obeys hard/soft cancellation as implemented by dcontext.WithSoftness; it
-// calls server.Shutdown() when the soft Context is canceled, and the hard
-// Context being canceled causes the .Shutdown() to hurry along and kill any
-// live requests and return, instead of waiting for them to be completed
-// gracefully.
-//
-// PS: Since this example function is actually useful, it's published as part of
-// the github.com/datawire/dlib/dutil package.  However, there are enough
-// historical "gotchas" with http.Server, that you should consider using
-// github.com/datawire/dlib/dhttp instead.
-func ListenAndServeHTTPWithContext(ctx context.Context, server *http.Server) error {
-	// An HTTP server is a bit of a complex example; for two reasons:
-	//
-	//  1. Like all network servers, it is a thing that manages multiple
-	//     worker goroutines.  Because of this, it is an exception to a
-	//     usual rule of Contexts:
-	//
-	//      > Do not store Contexts inside a struct type; instead, pass a
-	//      > Context explicitly to each function that needs it.
-	//      >
-	//      > -- the "context" package documentation
-	//
-	//  2. http.Server has its own clunky soft/hard shutdown mechanism, and
-	//     a large part of what this function is doing is adapting that to
-	//     the less-clunky dcontext mechanism.
-	//
-	// For those reasons, this isn't necessarily a good instructive example
-	// of how to use dcontext, but it is a *real* example.
-
-	// Regardless of if you use dcontext, you should always set
-	// `.BaseContext` on your `http.Server`s so that your HTTP Handler
-	// receives a request object that has `Request.Context()` set correctly.
-	server.BaseContext = func(_ net.Listener) context.Context {
-		// We use the hard Context here instead of the soft Context so
-		// that in-progress requests don't get interrupted when we enter
-		// the shutdown grace period.
-		return dcontext.HardContext(ctx)
-	}
-
-	serverCh := make(chan error)
-	go func() {
-		serverCh <- server.ListenAndServe()
-	}()
-	select {
-	case err := <-serverCh:
-		// The server quit on its own.
-		return err
-	case <-ctx.Done():
-		// A soft shutdown has been initiated; call server.Shutdown().
-
-		// If the hard Context becomes Done before server shuts down,
-		// then server.Shutdown() simply returns early, without doing
-		// any more-aggressive shutdown logic.  So in that case, we'll
-		// need to call server.Close() ourselves to propagate the hard
-		// shutdown.
-		defer server.Close()
-
-		return server.Shutdown(dcontext.HardContext(ctx))
 	}
 }
