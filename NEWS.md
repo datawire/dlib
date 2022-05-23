@@ -1,3 +1,11 @@
+# v1.2.5 (TBD)
+
+ - Bugfix: `dlog`: v1.2.4 introduced a regression that broke existing
+   external implementors of the `Logger` interface.  This has been
+   fixed; implementations wishing to opt-in to v1.2.4's fast-logger
+   behavior must now implement a distinct `OptimizedLogger` interface,
+   which is not protected by the usual compatibility promises.
+
 # v1.2.4 (2021-08-27)
 
  - Feature: `dlog`: Support deferring formatting of log messages to
