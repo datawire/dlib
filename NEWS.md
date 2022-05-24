@@ -1,4 +1,4 @@
-# v1.2.5 (TBD)
+# v1.2.5 (2022-05-24)
 
  - Bugfix: `dlog`: v1.2.4 introduced a regression that broke existing
    external implementors of the `Logger` interface.  This has been
