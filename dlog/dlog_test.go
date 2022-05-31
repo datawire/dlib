@@ -183,18 +183,7 @@ func (l testLogger) StdLogger(dlog.LogLevel) *log.Logger {
 	panic("not implemented")
 }
 
-func (l testLogger) Logln(level dlog.LogLevel, args ...interface{}) {
-	msg := fmt.Sprintln(args...)
-	msg = msg[:len(msg)-1]
-	l.Log(level, msg)
-}
-
-func (l testLogger) Logf(level dlog.LogLevel, format string, args ...interface{}) {
-	l.Log(level, fmt.Sprintf(format, args...))
-}
-
-func (l testLogger) Log(lvl dlog.LogLevel, args ...interface{}) {
-	msg := fmt.Sprint(args...)
+func (l testLogger) Log(lvl dlog.LogLevel, msg string) {
 	entry := testLogEntry{
 		level:   lvl,
 		message: msg,
