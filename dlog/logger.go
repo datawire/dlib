@@ -84,6 +84,19 @@ type OptimizedLogger interface {
 	UnformattedLogf(level LogLevel, format string, args ...interface{})
 }
 
+// LoggerWithMaxLevel can be implemented by loggers that define a maximum
+// level that will be logged, i.e. if a logger defines a max-level of
+// LogLevelInfo, then only LogLevelError, LogLevelWarn, and LogLevelInfo will
+// be logged, and LogLevelDebug and LogLevelTrace will be discarded.
+//
+// This interface can be used for examining what the loggers max level is
+// so that resource consuming string formatting can be avoided if its known that
+// the resulting message will be discarded anyway.
+type LoggerWithMaxLevel interface {
+	// MaxLevel return the maximum loglevel that will be logged
+	MaxLevel() LogLevel
+}
+
 // LogLevel is an abstracted common log-level type for Logger.StdLogger().
 type LogLevel uint32
 

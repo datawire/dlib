@@ -53,6 +53,20 @@ func (l logrusWrapper) Log(level LogLevel, msg string) {
 	l.logrusLogger.Log(dlogLevel2logrusLevel[level], msg)
 }
 
+func (l logrusWrapper) MaxLevel() LogLevel {
+	ll := l.logrusLogger
+	if le, ok := ll.(*logrus.Entry); ok {
+		ll = le.Logger
+	}
+	logrusLevel := ll.(*logrus.Logger).GetLevel()
+	for i, l := range dlogLevel2logrusLevel {
+		if l == logrusLevel {
+			return LogLevel(i)
+		}
+	}
+	panic(errors.Errorf("invalid logrus LogLevel: %d", logrusLevel))
+}
+
 func (l logrusWrapper) UnformattedLog(level LogLevel, args ...interface{}) {
 	if level > LogLevelTrace {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
