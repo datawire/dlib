@@ -31,52 +31,47 @@ func (l logrusWrapper) WithField(key string, value interface{}) Logger {
 	return logrusWrapper{l.logrusLogger.WithField(key, value)}
 }
 
-var dlogLevel2logrusLevel = map[LogLevel]logrus.Level{
-	LogLevelError: logrus.ErrorLevel,
-	LogLevelWarn:  logrus.WarnLevel,
-	LogLevelInfo:  logrus.InfoLevel,
-	LogLevelDebug: logrus.DebugLevel,
-	LogLevelTrace: logrus.TraceLevel,
+var dlogLevel2logrusLevel = [5]logrus.Level{
+	logrus.ErrorLevel,
+	logrus.WarnLevel,
+	logrus.InfoLevel,
+	logrus.DebugLevel,
+	logrus.TraceLevel,
 }
 
 func (l logrusWrapper) StdLogger(level LogLevel) *log.Logger {
-	logrusLevel, ok := dlogLevel2logrusLevel[level]
-	if !ok {
+	if level > LogLevelTrace {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
 	}
-	return log.New(l.logrusLogger.WriterLevel(logrusLevel), "", 0)
+	return log.New(l.logrusLogger.WriterLevel(dlogLevel2logrusLevel[level]), "", 0)
 }
 
 func (l logrusWrapper) Log(level LogLevel, msg string) {
-	logrusLevel, ok := dlogLevel2logrusLevel[level]
-	if !ok {
+	if level > LogLevelTrace {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
 	}
-	l.logrusLogger.Log(logrusLevel, msg)
+	l.logrusLogger.Log(dlogLevel2logrusLevel[level], msg)
 }
 
 func (l logrusWrapper) UnformattedLog(level LogLevel, args ...interface{}) {
-	logrusLevel, ok := dlogLevel2logrusLevel[level]
-	if !ok {
+	if level > LogLevelTrace {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
 	}
-	l.logrusLogger.Log(logrusLevel, args...)
+	l.logrusLogger.Log(dlogLevel2logrusLevel[level], args...)
 }
 
 func (l logrusWrapper) UnformattedLogln(level LogLevel, args ...interface{}) {
-	logrusLevel, ok := dlogLevel2logrusLevel[level]
-	if !ok {
+	if level > LogLevelTrace {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
 	}
-	l.logrusLogger.Logln(logrusLevel, args...)
+	l.logrusLogger.Logln(dlogLevel2logrusLevel[level], args...)
 }
 
 func (l logrusWrapper) UnformattedLogf(level LogLevel, format string, args ...interface{}) {
-	logrusLevel, ok := dlogLevel2logrusLevel[level]
-	if !ok {
+	if level > LogLevelTrace {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
 	}
-	l.logrusLogger.Logf(logrusLevel, format, args...)
+	l.logrusLogger.Logf(dlogLevel2logrusLevel[level], format, args...)
 }
 
 // WrapLogrus converts a logrus *Logger into a generic Logger.
