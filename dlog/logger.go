@@ -85,13 +85,28 @@ type OptimizedLogger interface {
 }
 
 // LoggerWithMaxLevel can be implemented by loggers that define a maximum
-// level that will be logged, i.e. if a logger defines a max-level of
+// level that will be logged, e.g. if a logger defines a max-level of
 // LogLevelInfo, then only LogLevelError, LogLevelWarn, and LogLevelInfo will
-// be logged, and LogLevelDebug and LogLevelTrace will be discarded.
+// be logged; while LogLevelDebug and LogLevelTrace will be discarded.
 //
 // This interface can be used for examining what the loggers max level is
-// so that resource consuming string formatting can be avoided if its known that
-// the resulting message will be discarded anyway.
+// so that resource consuming string formatting can be avoided if its known
+// that the resulting message will be discarded anyway.
+//
+// The MaxLevel method is provided in an extra interface for two reasons:
+//
+// 1. Expected implementations of OptimizedLogger that don't need a
+// MaxLevel, such as a wrapper for log.Logger.
+//
+// 2. A concern about performance degradation in existing implementations
+// when checks like:
+//
+//      if opt, ok := l.(OptimizedLogger); ok {
+//          ...
+//      }
+//
+// no longer detect implementations that lack the MaxLevel method and
+// silently choose a non-optimized approach.
 type LoggerWithMaxLevel interface {
 	// MaxLevel return the maximum loglevel that will be logged
 	MaxLevel() LogLevel
