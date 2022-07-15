@@ -65,6 +65,16 @@ func StdLogger(ctx context.Context, level LogLevel) *log.Logger {
 	return getLogger(ctx).StdLogger(level)
 }
 
+// MaxLogLevel returns the maximum loglevel of the Logger associated
+// with the ctx if that logger implements the LoggerWithMaxLevel interface,
+// or the highest possible level (LogLevelTrace) if it doesn't.
+func MaxLogLevel(ctx context.Context) LogLevel {
+	if lm, ok := getLogger(ctx).(LoggerWithMaxLevel); ok {
+		return lm.MaxLevel()
+	}
+	return LogLevelTrace
+}
+
 func sprintln(args ...interface{}) string {
 	// Trim the trailing newline; what we care about is that spaces are added in between
 	// arguments, not that there's a trailing newline.  See also: logrus.Entry.sprintlnn
