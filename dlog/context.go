@@ -75,6 +75,18 @@ func MaxLogLevel(ctx context.Context) LogLevel {
 	return LogLevelTrace
 }
 
+// SetMaxLogLevel sets the maximum loglevel of the Logger associated
+// with ctx if that logger implements the LoggerWithMaxLevel interface,
+// otherwise it does nothing.
+//
+// Note that the loglevel set will remain with future calls to dlog.Log
+// using the same ctx. 
+func SetMaxLogLevel(ctx context.Context, level LogLevel){
+	if lm, ok := getLogger(ctx).(LoggerWithMaxLevel); ok {
+		lm.SetMaxLevel(level)
+	}
+}
+
 func sprintln(args ...interface{}) string {
 	// Trim the trailing newline; what we care about is that spaces are added in between
 	// arguments, not that there's a trailing newline.  See also: logrus.Entry.sprintlnn

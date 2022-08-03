@@ -84,19 +84,23 @@ type OptimizedLogger interface {
 	UnformattedLogf(level LogLevel, format string, args ...interface{})
 }
 
-// LoggerWithMaxLevel can be implemented by loggers that define a maximum
-// level that will be logged, e.g. if a logger defines a max-level of
-// LogLevelInfo, then only LogLevelError, LogLevelWarn, and LogLevelInfo will
-// be logged; while LogLevelDebug and LogLevelTrace will be discarded.
+// LoggerWithMaxLevel can be implemented by loggers that support leveled logging
+// where a maximum level can be defined that will be logged, e.g. if a logger 
+// defines a max-level of LogLevelInfo, then only LogLevelError, LogLevelWarn, 
+// and LogLevelInfo will be logged; while LogLevelDebug and LogLevelTrace 
+// will be discarded.
 //
-// This interface can be used for examining what the loggers max level is
-// so that resource consuming string formatting can be avoided if its known
-// that the resulting message will be discarded anyway.
+// This interface can be used for setting and examining the logger's max level.
+// This is useful in situations where resources consuming string formatting 
+// can be avoided if its known that the resulting message will be discarded anyway
+// or if the log level needs to be dynamically set at runtime without being dependent
+// on a particular logger implementation.
 //
-// The MaxLevel method is provided in an extra interface for two reasons:
+// The MaxLevel and SetMaxLevel methods are provided in an extra interface
+// for two reasons:
 //
 // 1. Expected implementations of OptimizedLogger that don't need a
-// MaxLevel, such as a wrapper for log.Logger.
+// MaxLevel and SetMaxLevel, such as a wrapper for log.Logger.
 //
 // 2. A concern about performance degradation in existing implementations
 // when checks like:
@@ -105,11 +109,21 @@ type OptimizedLogger interface {
 //          ...
 //      }
 //
-// no longer detect implementations that lack the MaxLevel method and
-// silently choose a non-optimized approach.
+// no longer detect implementations that lack the MaxLevel or SetMaxLevel methods 
+// and silently choose a non-optimized approach.
 type LoggerWithMaxLevel interface {
-	// MaxLevel return the maximum loglevel that will be logged
+	// MaxLevel returns the maximum loglevel that will be logged. 
+	
+	// If the loglevel returned by the underlying logger is invalid
+	// (i.e has no corresponding dlog.LogLevel) then the function panics.
 	MaxLevel() LogLevel
+
+	// SetMaxLevel sets the maximum loglevel that will be logged
+	
+	// If level is invalid, then the function should panic to be 
+	// consistent with MaxLevel where it panics when an invalid 
+	// loglevel is returned by the underlying logger.
+	SetMaxLevel(level LogLevel)
 }
 
 // LogLevel is an abstracted common log-level type for Logger.StdLogger().

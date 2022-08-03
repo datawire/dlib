@@ -152,29 +152,29 @@ func TestInvalidLogLevel(t *testing.T) {
 	}
 }
 
-var dlogLevel2logrusLevel = map[dlog.LogLevel]logrus.Level{
-	dlog.LogLevelError: logrus.ErrorLevel,
-	dlog.LogLevelWarn:  logrus.WarnLevel,
-	dlog.LogLevelInfo:  logrus.InfoLevel,
-	dlog.LogLevelDebug: logrus.DebugLevel,
-	dlog.LogLevelTrace: logrus.TraceLevel,
+var dlogLevel2logrusLevel = [5]dlog.LogLevel{
+	dlog.LogLevelError,
+	dlog.LogLevelWarn,
+	dlog.LogLevelInfo,
+	dlog.LogLevelDebug,
+	dlog.LogLevelTrace,
 }
 
 func TestMaxLevel(t *testing.T) {
-	for d, r := range dlogLevel2logrusLevel {
+	for _, d := range dlogLevel2logrusLevel {
 		logger := logrus.New()
-		logger.SetLevel(r)
 		ctx := dlog.WithLogger(context.Background(), dlog.WrapLogrus(logger))
+		dlog.SetMaxLogLevel(ctx, d)
 		assert.Equal(t, d, dlog.MaxLogLevel(ctx))
 	}
 }
 
 func TestMaxLevelWithField(t *testing.T) {
-	for d, r := range dlogLevel2logrusLevel {
+	for _, d := range dlogLevel2logrusLevel {
 		logger := logrus.New()
-		logger.SetLevel(r)
 		ctx := dlog.WithLogger(context.Background(), dlog.WrapLogrus(logger))
 		ctx = dlog.WithField(ctx, "testing", "test field")
+		dlog.SetMaxLogLevel(ctx, d)
 		assert.Equal(t, d, dlog.MaxLogLevel(ctx))
 	}
 }
@@ -195,6 +195,18 @@ func TestInvalidMaxLevel(t *testing.T) {
 		}
 	}()
 	dlog.MaxLogLevel(ctx)
+}
+
+func TestSetInvalidMaxLevel(t *testing.T) {
+	logger := logrus.New()
+	ctx := dlog.WithLogger(context.Background(), dlog.WrapLogrus(logger))
+	defer func() {
+		x := recover()
+		if x == nil {
+			t.Errorf("Setting invalid max level did not panic")
+		}
+	}()
+	dlog.SetMaxLogLevel(ctx, 999)
 }
 
 type testLogEntry struct {
