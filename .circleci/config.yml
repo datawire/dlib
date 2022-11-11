@@ -83,7 +83,12 @@ jobs:
     steps:
     - install-go
     - checkout
-    - run: "eval $(grep 'go test' Makefile)"
+    - run:
+        name: make test
+        command: |
+          GOTEST_FLAGS=-vet=off # https://github.com/golang/go/issues/27089#issuecomment-933016414
+          set -x
+          eval "$(grep 'go test' Makefile)"
     - save-coverage
 
   "test":
@@ -98,9 +103,9 @@ jobs:
         name: "Generate code-coverage report"
         command: |
           set -e
-          make .circleci/gocovmerge .circleci/goveralls
-          .circleci/gocovmerge /tmp/workspace/*.cov > dlib.cov
-          .circleci/goveralls -coverprofile=dlib.cov -service=circle-ci -repotoken=$COVERALLS_TOKEN
+          make tools/bin/gocovmerge tools/bin/goveralls
+          tools/bin/gocovmerge /tmp/workspace/*.cov > dlib.cov
+          tools/bin/goveralls -coverprofile=dlib.cov -service=circle-ci -repotoken=$COVERALLS_TOKEN
 
   "lint":
     docker:

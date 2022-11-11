@@ -11,7 +11,31 @@ help:
 
 .SECONDARY:
 .PHONY: FORCE
-SHELL = bash
+SHELL = bash -o pipefail
+
+#
+# Tools
+
+# shell scripts
+tools/copy-ifchanged = tools/bin/copy-ifchanged
+tools/bin/%: tools/src/%.sh
+	mkdir -p $(@D)
+	install $< $@
+
+# `go get`-able things
+tools/gocovmerge    = tools/bin/gocovmerge
+tools/goimports     = tools/bin/goimports
+tools/golangci-lint = tools/bin/golangci-lint
+tools/goveralls     = tools/bin/goveralls
+tools/bin/%: tools/src/%/pin.go tools/src/%/go.mod
+	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) $$(sed -En 's,^import "(.*)".*,\1,p' pin.go)
+
+# local Go sources
+tools/nodelete = tools/bin/nodelete
+tools/bin/.%.stamp: tools/src/%/main.go FORCE
+	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) .
+tools/bin/%: tools/bin/.%.stamp $(tools/copy-ifchanged)
+	$(tools/copy-ifchanged) $< $@
 
 #
 # Test
@@ -20,7 +44,7 @@ dlib.cov: test
 	test -e $@
 	touch $@
 test:
-	go test -count=1 -coverprofile=dlib.cov -coverpkg=./... -race ./...
+	go test -count=1 -coverprofile=dlib.cov -coverpkg=./... -race ${GOTEST_FLAGS} ./...
 .PHONY: test
 
 %.cov.html: %.cov
@@ -40,17 +64,11 @@ generate:
 #
 # Lint
 
-lint: .circleci/golangci-lint
-	GOOS=linux   .circleci/golangci-lint run ./...
-	GOOS=darwin  .circleci/golangci-lint run ./...
-	GOOS=windows .circleci/golangci-lint run ./...
+lint: $(tools/golangci-lint)
+	GOOS=linux   $(tools/golangci-lint) run ./...
+	GOOS=darwin  $(tools/golangci-lint) run ./...
+	GOOS=windows $(tools/golangci-lint) run ./...
 .PHONY: lint
-
-#
-# Tools
-
-.circleci/%: .circleci/%.d/go.mod .circleci/%.d/pin.go
-	cd $(<D) && go build -o ../$(@F) $$(sed -En 's,^import "(.*)"$$,\1,p' pin.go)
 
 #
 # Utilities for working with borrowed code
@@ -58,15 +76,15 @@ lint: .circleci/golangci-lint
 GOHOME ?= $(HOME)/src/github.com/golang/go
 GOVERSION ?= 1.15.14
 
-%.unmod: % .circleci/goimports FORCE
+%.unmod: % $(tools/goimports) FORCE
 	<$< \
 	  sed \
 	    -e '/MODIFIED: META:/d' \
 	    -e '/MODIFIED: ADDED/d' \
 	    -e 's,.*// MODIFIED: FROM:,,' | \
-	  .circleci/goimports -local github.com/datawire/dlib \
+	  $(tools/goimports) -local github.com/datawire/dlib \
 	  >$@
-borrowed.patch: FORCE
+borrowed.patch: $(tools/nodelete) FORCE
 	$(MAKE) $(addsuffix .unmod,$(shell git ls-files ':*borrowed_*'))
 	@for copy in $$(git ls-files ':*borrowed_*'); do \
 	  orig=$$(sed <<<"$$copy" \
@@ -74,12 +92,13 @@ borrowed.patch: FORCE
 	    -e s,^dexec/internal/,internal/, \
 	    -e s,^dexec/,os/exec/, \
 	    -e s,^dcontext/,context/, \
+	    -e s,^dsync/,sync/, \
 	    -e '/^dhttp/{ s,^dhttp/,net/http/internal/,; s,_test,,; }'); \
 	  if grep -q 'MODIFIED: META: .* subset ' "$$copy"; then \
-	    echo "diff -uw $(GOHOME)/src/$$orig $$copy.unmod | sed '3,\$${ /^-/d; }'" >&2; \
-	          diff -uw $(GOHOME)/src/$$orig $$copy.unmod | sed '3,$${ /^-/d; }' || true; \
+	    echo "{ diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true; } | $(tools/nodelete)" >&2; \
+	          { diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true; } | $(tools/nodelete); \
 	  else \
-	    echo "diff -uw $(GOHOME)/src/$$orig $$copy.unmod" >&2; \
+	    echo "diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true" >&2; \
 	          diff -uw $(GOHOME)/src/$$orig $$copy.unmod || true; \
 	  fi; \
 	done > $@
@@ -91,6 +110,7 @@ check-attribution:
 	    -e s,^dexec/internal/,internal/, \
 	    -e s,^dexec/,os/exec/, \
 	    -e s,^dcontext/,context/, \
+	    -e s,^dsync/,sync/, \
 	    -e '/^dhttp/{ s,^dhttp/,net/http/internal/,; s,_test,,; }'); \
 	  if grep -Fq "Go $(GOVERSION) $$orig" "$$copy" && grep -q 'Copyright .* The Go Authors' "$$copy"; then \
 	    echo "$$copy : Looks OK"; \
