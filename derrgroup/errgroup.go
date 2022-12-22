@@ -57,7 +57,7 @@ func (s GoroutineState) String() string {
 	case GoroutineRunning:
 		return "running"
 	case GoroutineExited:
-		return "exited without error"
+		return "exited"
 	case GoroutineErrored:
 		return "exited with error"
 	default:

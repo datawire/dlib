@@ -372,7 +372,7 @@ func (g *Group) goWorkerCtx(ctx context.Context, fn func(ctx context.Context) er
 			}
 			if !g.cfg.DisableLogging {
 				if err == nil {
-					dlog.Debugf(ctx, "goroutine %q exited without error", getGoroutineName(ctx))
+					dlog.Debugf(ctx, "goroutine %q exited", getGoroutineName(ctx))
 				} else {
 					// Use %+v instead of %v to include the stacktrace (if there is one).  In
 					// particular, if the above panic recovery tripped, then we really don't want to
