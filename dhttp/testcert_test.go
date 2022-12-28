@@ -1,13 +1,12 @@
 package dhttp_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
 
 func testCertFiles() (certFile string, keyFile string, cleanup func(), err error) {
-	tmpdir, err := ioutil.TempDir("", "dhttp-test.")
+	tmpdir, err := os.MkdirTemp("", "dhttp-test.")
 	if err != nil {
 		return "", "", nil, err
 	}
@@ -18,11 +17,11 @@ func testCertFiles() (certFile string, keyFile string, cleanup func(), err error
 		_ = os.RemoveAll(tmpdir)
 	}
 
-	if err := ioutil.WriteFile(certFile, LocalhostCert, 0600); err != nil {
+	if err := os.WriteFile(certFile, LocalhostCert, 0600); err != nil {
 		cleanup()
 		return "", "", nil, err
 	}
-	if err := ioutil.WriteFile(keyFile, LocalhostKey, 0600); err != nil {
+	if err := os.WriteFile(keyFile, LocalhostKey, 0600); err != nil {
 		cleanup()
 		return "", "", nil, err
 	}
