@@ -56,7 +56,7 @@ lint: .circleci/golangci-lint
 # Utilities for working with borrowed code
 
 GOHOME ?= $(HOME)/src/github.com/golang/go
-GOVERSION ?= 1.15.14
+GOVERSION ?= 1.19.4
 
 %.unmod: % .circleci/goimports FORCE
 	<$< \
