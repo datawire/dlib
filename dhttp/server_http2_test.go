@@ -3,7 +3,7 @@ package dhttp_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sync"
 	"testing"
@@ -44,7 +44,7 @@ func TestContext(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err := ioutil.ReadAll(resp.Body); err != nil {
+		if _, err := io.ReadAll(resp.Body); err != nil {
 			t.Fatal(err)
 		}
 		if err := resp.Body.Close(); err != nil {
@@ -91,7 +91,7 @@ func TestShutdownIdle(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err := ioutil.ReadAll(resp.Body); err != nil {
+		if _, err := io.ReadAll(resp.Body); err != nil {
 			t.Fatal(err)
 		}
 		if err := resp.Body.Close(); err != nil {

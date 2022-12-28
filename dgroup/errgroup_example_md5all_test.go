@@ -10,7 +10,6 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -73,7 +72,7 @@ func MD5All(ctx context.Context, root string) (map[string][md5.Size]byte, error)
 	for i := 0; i < numDigesters; i++ {
 		g.Go(fmt.Sprintf("digestor-%d", i), func(ctx context.Context) error {
 			for path := range paths {
-				data, err := ioutil.ReadFile(path)
+				data, err := os.ReadFile(path)
 				if err != nil {
 					return err
 				}

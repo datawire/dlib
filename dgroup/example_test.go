@@ -108,7 +108,7 @@ func Example_signalHandling1() {
 	// level=error msg="goroutine \":signal_handler:0\" exited with error: received signal interrupt (triggering graceful shutdown)" THREAD=":signal_handler:0"
 	// level=info msg="shutting down (gracefully)..." THREAD=":shutdown_logger"
 	// level=info msg="  final goroutine statuses:" THREAD=":shutdown_status"
-	// level=info msg="    /worker          : exited without error" THREAD=":shutdown_status"
+	// level=info msg="    /worker          : exited" THREAD=":shutdown_status"
 	// level=info msg="    :signal_handler:0: exited with error" THREAD=":shutdown_status"
 	// level=error msg="exiting with error: received signal interrupt (triggering graceful shutdown)"
 }
@@ -193,7 +193,7 @@ func Example_signalHandling2() {
 	// level=error msg="    :signal_handler:0: exited with error" THREAD=":signal_handler:1"
 	// level=info msg="shutting down (not-so-gracefully)..." THREAD=":shutdown_logger"
 	// level=info msg="  final goroutine statuses:" THREAD=":shutdown_status"
-	// level=info msg="    /worker          : exited without error" THREAD=":shutdown_status"
+	// level=info msg="    /worker          : exited" THREAD=":shutdown_status"
 	// level=info msg="    :signal_handler:0: exited with error" THREAD=":shutdown_status"
 	// level=error msg="exiting with error: received signal interrupt (triggering graceful shutdown)"
 }
