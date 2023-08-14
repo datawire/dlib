@@ -86,14 +86,14 @@ func TestCommandRunLogging(t *testing.T) {
 	// I say "equivalent of", because we're doing this with Go, because not all platforms have
 	// Bash.
 	cmd := exec.CommandContext(ctx, os.Args[0], "-test.run=TestCommandRunLoggingHelperProcess")
-	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
 	if err := cmd.Run(); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
 	//nolint:lll
 	expectedLines := []string{
-		`level=info dexec.pid=XXPIDXX msg="started command [`+quote15(os.Args[0])+` \"-test.run=TestCommandRunLoggingHelperProcess\"]"`,
+		`level=info dexec.pid=XXPIDXX msg="started command [` + quote15(os.Args[0]) + ` \"-test.run=TestCommandRunLoggingHelperProcess\"]"`,
 		`level=info dexec.pid=XXPIDXX dexec.stream=stdin dexec.err=EOF`,
 		`level=info dexec.pid=XXPIDXX dexec.stream=stdout+stderr dexec.data="1\n"`,
 		`level=info dexec.pid=XXPIDXX dexec.stream=stdout+stderr dexec.data="2\n"`,

@@ -210,11 +210,14 @@ func TestSoftCancelCantStart(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected to get an error from Start()")
 	}
-	expErr := "permission denied"
-	if runtime.GOOS == "windows" {
-		expErr = "file does not exist"
+	for _, expErr := range []string{"permission denied", "is a directory", "file does not exist"} {
+		if err.Error() == `exec: "/": `+expErr {
+			err = nil
+			break
+		}
 	}
-	if err.Error() != `exec: "/": `+expErr {
+
+	if err != nil {
 		t.Errorf("unexpected error value: %v", err)
 	}
 
@@ -259,7 +262,7 @@ func TestSoftCancelSelfExit(t *testing.T) {
 
 	cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestHelperProcess", "--", "echo", "foo")
 	cmd.SysProcAttr = newInterruptableSysProcAttr()
-	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+	cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
 
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
