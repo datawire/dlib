@@ -1,3 +1,13 @@
+# v1.3.1 (2023-08-14)
+
+ - Feature: Add `dlog.MaxLogLevel` function that returns the maximum
+   log-level for the logger associated with the context.
+
+ - Bugfix: Removed dot import of "context" causing compile errors due
+   to conflicting `WithoutCancel` method when using golang >= 1.21
+
+ - Change: Remove the "without error" suffix when goroutines exit.
+
 # v1.3.0 (2022-05-24)
 
  - Feature: `derror`: Implement a new `type MultiError []error` type
