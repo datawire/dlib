@@ -8,7 +8,7 @@
 package dcontext // MODIFIED: FROM: package context
 
 import (
-	. "context"           // MODIFIED: ADDED
+	"context"             // MODIFIED: ADDED
 	reflectlite "reflect" // MODIFIED: FROM: "internal/reflectlite"
 )
 
@@ -16,7 +16,7 @@ type stringer interface {
 	String() string
 }
 
-func contextName(c Context) string {
+func contextName(c context.Context) string {
 	if s, ok := c.(stringer); ok {
 		return s.String()
 	}

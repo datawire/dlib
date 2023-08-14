@@ -20,7 +20,7 @@ dlib.cov: test
 	test -e $@
 	touch $@
 test:
-	go test -count=1 -coverprofile=dlib.cov -coverpkg=./... -race ./...
+	GOCOVERDIR=. go test -count=1 -coverprofile=dlib.cov -coverpkg=./... -race ./...
 .PHONY: test
 
 %.cov.html: %.cov

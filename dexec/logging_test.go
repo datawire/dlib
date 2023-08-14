@@ -151,7 +151,7 @@ func TestOutputErrors(t *testing.T) {
 			ctx := newCapturingContext(t, &actualLog)
 
 			cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestLoggingHelperProcess")
-			cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+			cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
 			cmd.Stdout = tcData.InputStdout
 			cmd.Stderr = tcData.InputStderr
 
@@ -203,7 +203,7 @@ func TestLogging(t *testing.T) {
 			ctx := newCapturingContext(t, &actualLog)
 
 			cmd := dexec.CommandContext(ctx, os.Args[0], "-test.run=TestLoggingHelperProcess")
-			cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
+			cmd.Env = append(os.Environ(), "GO_WANT_HELPER_PROCESS=1")
 			cmd.Stdout = tcData.InputStdout
 			cmd.DisableLogging = tcData.InputDisableLogging
 
