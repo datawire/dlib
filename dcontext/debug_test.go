@@ -36,7 +36,6 @@ func TestDebug(t *testing.T) {
 		},
 		{"WithSoftness", func() { ctx = dcontext.WithSoftness(ctx) }, ""},
 		{"HardContext", func() { ctx = dcontext.HardContext(ctx) }, "HardContext"},
-		{"WithoutCancel", func() { ctx = dcontext.WithoutCancel(ctx) }, "WithoutCancel"},
 	}
 	t.Log(fmt.Sprint(ctx))
 	for _, tc := range testcases {

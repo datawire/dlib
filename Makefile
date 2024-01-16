@@ -19,8 +19,13 @@ SHELL = bash
 dlib.cov: test
 	test -e $@
 	touch $@
+
+test-race:
+	go test -count=1 -race ./...
+.PHONY: test
+
 test:
-	GOCOVERDIR=. go test -count=1 -coverprofile=dlib.cov -coverpkg=./... -race ./...
+	GOCOVERDIR=. go test -count=1 -coverprofile=dlib.cov -coverpkg=./... ./...
 .PHONY: test
 
 %.cov.html: %.cov
@@ -56,7 +61,7 @@ lint: .circleci/golangci-lint
 # Utilities for working with borrowed code
 
 GOHOME ?= $(HOME)/src/github.com/golang/go
-GOVERSION ?= 1.19.4
+GOVERSION ?= 1.21.6
 
 %.unmod: % .circleci/goimports FORCE
 	<$< \
