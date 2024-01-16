@@ -23,18 +23,18 @@
 //
 // For example:
 //
-//     ctx := dlog.WithLogger(context.Background(), myLogger)
-//     cmd := dexec.CommandContext(ctx, "printf", "%s\n", "foo bar", "baz")
-//     cmd.Stdin = os.Stdin
-//     err := cmd.Run()
+//	ctx := dlog.WithLogger(context.Background(), myLogger)
+//	cmd := dexec.CommandContext(ctx, "printf", "%s\n", "foo bar", "baz")
+//	cmd.Stdin = os.Stdin
+//	err := cmd.Run()
 //
 // will log the lines (assuming the default dlog configuration):
 //
-//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 msg="started command [\"printf\" \"%s\\n\" \"foo bar\" \"baz\"]"
-//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdin msg="not logging input read from file \"/dev/stdin\""
-//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdout+stderr dexec.data="foo bar\n"
-//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdout+stderr dexec.data="baz\n"
-//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 msg="finished successfully: exit status 0"
+//	time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 msg="started command [\"printf\" \"%s\\n\" \"foo bar\" \"baz\"]"
+//	time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdin msg="not logging input read from file \"/dev/stdin\""
+//	time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdout+stderr dexec.data="foo bar\n"
+//	time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdout+stderr dexec.data="baz\n"
+//	time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 msg="finished successfully: exit status 0"
 //
 // If you would like a "pipe" to be logged, use an io.Pipe instead of
 // calling .StdinPipe, .StdoutPipe, or .StderrPipe.
@@ -109,7 +109,7 @@ type Cmd struct {
 // See the os/exec.Command and os/exec.CommandContext documentation
 // for more information.
 func CommandContext(ctx context.Context, name string, arg ...string) *Cmd {
-	osCtx, osCancel := context.WithCancel(dcontext.WithoutCancel(ctx))
+	osCtx, osCancel := context.WithCancel(context.WithoutCancel(ctx))
 	ret := &Cmd{
 		Cmd:      exec.CommandContext(osCtx, name, arg...),
 		ctx:      ctx,
