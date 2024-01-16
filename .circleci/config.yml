@@ -36,8 +36,8 @@ commands:
             set -x
             if [[ $OS == Windows_NT ]]; then
               curl https://dl.google.com/go/go<< parameters.version >>.windows-amd64.zip -o /tmp/go.zip
-              mv /c/go /c/go-112
-              unzip -q /tmp/go.zip -d /c/
+              mv '/c/Program Files/Go' '/c/Program Files/Go.bak'
+              unzip -q /tmp/go.zip -d '/c/Program Files'
             else
               curl https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
               tar -C /tmp -xzf /tmp/go.tar.gz
@@ -64,6 +64,7 @@ jobs:
     resource_class: small
     steps:
     - checkout
+    - run: make test-race
     - run: make test
     - save-coverage
 
@@ -73,6 +74,7 @@ jobs:
     steps:
     - install-go
     - checkout
+    - run: make test-race
     - run: make test
     - save-coverage
 
@@ -83,7 +85,7 @@ jobs:
     steps:
     - install-go
     - checkout
-    - run: "eval $(grep 'go test' Makefile)"
+    - run: "eval $(grep 'GOCOVERDIR=. go test ' Makefile)"
     - save-coverage
 
   "test":
